@@ -1,0 +1,839 @@
+\documentclass[a4paper,10pt]{report}
+  
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{array}
+\usepackage{float}
+\usepackage{subfigure}
+
+\usepackage{color}
+\usepackage{listings}
+
+
+%% This MUST BE the last include:
+\usepackage[ps2pdf,bookmarks=true,breaklinks=true,linkbordercolor={0 0 1}]{hyperref}
+
+
+\addtolength{\oddsidemargin}{-.5in}
+\addtolength{\evensidemargin}{-.5in}
+\addtolength{\textwidth}{1.0in}
+\addtolength{\topmargin}{-.5in}
+\addtolength{\textheight}{1.0in}
+
+
+% Title Page
+\title{6D poses as Euler angles, transformation matrices and quaternions: equivalences, compositions and uncertainty}
+\author{Jose-Luis Blanco\\jlblanco@ctima.uma.es\\~\\Technical Report\\~\\
+MAPIR Group\\University of M\'alaga, Spain}
+
+
+\begin{document}
+
+
+
+
+\definecolor{lightgray}{rgb}{0.93,0.93,0.93}
+\definecolor{darkgray}{rgb}{0.5,0.5,0.5}
+%%\lstset{frameround=fttt}
+\lstset{language=C++}
+\lstset{backgroundcolor=\color{lightgray}}
+%% \lstset{numbers=left, numberstyle=\tiny, numbersep=5pt} %% stepnumber=2,
+\lstset{keywordstyle=\color{blue}\bfseries\emph}
+\lstset{commentstyle=\color{darkgray}\emph}
+\lstset{basicstyle=\ttfamily\scriptsize} %%\footnotesize}
+
+
+\maketitle
+
+\pagestyle{plain}
+
+\begin{abstract}
+Any rigid transformation in 3D Euclidean space, or \emph{pose}, comprises a 3D translation and an arbitrary 3D rotation.
+This technical report reviews, under a unifying viewpoint, three common alternatives to representing the 
+rotation part: a set of three (yaw-pitch-roll) Euler angles, a rotation matrix and a quaternion.
+It will be described: 
+(i) the equivalence between these representations and the formulas for transforming one to each other,
+(ii) how to compose poses in each representation and 
+(iii) how the uncertainty of the poses (when modeled as Gaussian distributions)
+is affected by these transformations and compositions.
+The text also reflects which MRPT C++ library function implements 
+each of the described algorithms.
+\end{abstract}
+
+\tableofcontents
+
+
+%% ================================================
+\chapter{Poses in 3-dimensional space}
+
+
+\section{Basic definitions}
+
+A \emph{pose} in 3D can be described by means of a 3D translation plus an orthonormal vector base, 
+or coordinates frame, relative to any other arbitrary coordinate reference system. 
+The overall number of degrees of freedom is six, hence they can be also referred 
+to as \emph{6D poses}.
+
+
+The Figure~\ref{fig:1} illustrates this definition, where the pose $\mathbf{p}$ is represented
+by the axes $\{\mathbf{X}',\mathbf{Y}',\mathbf{Z}' \}$ with respect to the reference frame 
+$\{\mathbf{X},\mathbf{Y},\mathbf{Z} \}$.
+
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.70\textwidth]{fig_pose_composition.eps}
+\caption{Schematic representation of a 6D pose $\mathbf{p}$ and its role in defining 
+the relative coordinates $\mathbf{a}'$ of the 3D point $\mathbf{a}$.}
+\label{fig:1}
+\end{figure}
+
+
+Given a 6D pose $\mathbf{p}$ and a 3D point $\mathbf{a}$, both relative to some arbitrary
+global frame of reference, and being $\mathbf{a}'$ the coordinates of $\mathbf{a}$ relative
+to $\mathbf{p}$, we define 
+the composition $\oplus$ and inverse composition $\ominus$ operations as follows:
+
+\begin{eqnarray*}
+\mathbf{a} & \equiv & \mathbf{p} \oplus \mathbf{a}'   ~~~~~~~ \textrm{Pose composition} \\
+\mathbf{a'} & \equiv & \mathbf{a} \ominus \mathbf{p}  ~~~~~~~~ \textrm{Pose inverse composition} \\
+\end{eqnarray*}
+
+These operations are intensively applied in a number of robotics and computer vision 
+problems, for example, when computing the relative position of a 3D visual landmark 
+with respect to a camera while computing the perspective projection of the landmark 
+into the image plane.
+
+The composition operators can be also applied to pairs of 6D poses (above we described a combination
+of \emph{6D poses} and {3D points}). 
+The meaning of composing two poses $\mathbf{p1}$ and $\mathbf{p2}$ 
+obtaining a third pose $\mathbf{p} = \mathbf{p1} \oplus \mathbf{p2}$ 
+is that of concatenating the transformation of the second pose to the reference system
+\emph{already transformed} by the first pose. 
+This is illustrated in Figure~\ref{fig:comp_2poses}. 
+
+\begin{figure}
+\centering
+\subfigure[The pose $\mathbf{p1}$]{\includegraphics[width=0.40\textwidth]{pose_comp_p1.eps}}
+\subfigure[The pose $\mathbf{p2}$]{\includegraphics[width=0.40\textwidth]{pose_comp_p2.eps}} \\
+\subfigure[Composition $\mathbf{p1} \oplus \mathbf{p2}$]{\includegraphics[width=0.60\textwidth]{pose_comp_p1p2.eps}}
+
+\caption{The composition of two 6D poses $\mathbf{p1}$ and $\mathbf{p2}$ leads to $\mathbf{p}$.}
+\label{fig:comp_2poses}
+\end{figure}
+
+The inverse pose composition can be also applied to 6D poses, in this case meaning that
+the pose $\mathbf{p}$ (in global coordinates) ``is seen'' as $\mathbf{p2}$ with respect
+to the reference frame of $\mathbf{p1}$ (this one, also in global coordinates), a 
+relationship expressed as $\mathbf{p2} = \mathbf{p} \ominus \mathbf{p1}$.
+
+Up to this point, poses, pose/point and pose/pose compositions have been described 
+under a purely geometrical point of view. 
+The next section introduces some of the 
+most commonly employed mathematical representations.
+
+
+\newpage
+
+\section{Common representations}
+
+
+\subsection{3D translation plus yaw-pitch-roll (3D+YPR)}
+
+A 6D pose $\mathbf{p_6}$ can be described as a displacement in 3D plus a rotation defined by 
+means of a specific case of Euler angles: yaw ($\phi$), pitch
+($\chi$) and roll ($\psi$), that is:
+
+\begin{eqnarray}
+\mathbf{p_6} &=& [x ~ y ~ z ~ \phi ~ \chi ~ \psi]^\top
+\end{eqnarray}
+
+The geometrical meaning of the angles is represented in Figure~\ref{fig:ypr}. 
+There are other alternative conventions about triplets of angles to represent a rotation in 3D, but
+the one employed here is the one most commonly used in robotics. 
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.40\textwidth]{fig1.eps}
+\caption{A common convention for the angles yaw, pitch and roll.}
+\label{fig:ypr}
+\end{figure}
+
+Note that the overall rotation is represented as a sequence of three individual rotations, 
+each taking a different axis of rotation. 
+In particular, the order is: yaw around Z axis, then pitch around the modified Y axis, 
+then roll around the modified X axis.
+
+This representation is the most compact since it only requires 6 real parameters
+to describe a pose (the minimum number of parameters, since a pose has 6 degrees of freedom).
+However, in some applications it may be more advantageous to employ other representations, 
+even at the cost of maintaining more parameters.
+
+
+\subsubsection{Degenerate cases: gimbal lock}
+\label{sect:ypr:gimbal}
+
+One of the important disadvantages of the yaw-pitch-roll representation of rotations is the existence 
+of two degenerate cases, specifically, when pitch ($\chi$) approaches $\pm 90^\circ$. In this case, 
+it is easy to realize that a change in roll becomes a change in yaw.
+
+This means that, for $ \chi = \pm 90^\circ$, there is not a unique correspondence between any possible
+rotation in 3D and a triplet of yaw-pitch-roll angles. 
+The practical consecuences of this characteristic is the need for detecting and handling these 
+special cases, as will be seen in some of the transformations described later on.
+
+
+\subsubsection{Implementation in MRPT}
+
+Poses based on yaw-pitch-roll angles are implemented in the C++ class \texttt{mrpt::poses::CPose3D}:
+
+\begin{lstlisting}
+#include <mrpt/core.h> 
+using namespace mrpt::poses; 
+
+CPose3D   p(1.0 /* x */,2.0 /* y */,3.0 /* z */, 
+            DEG2RAD(30.0) /* yaw */, DEG2RAD(20.0) /* pitch */, DEG2RAD(90.0) /* roll */ );
+\end{lstlisting}
+
+
+\newpage
+
+\subsection{3D translation plus quaternion (3D+Quat)}
+
+A pose $\mathbf{p_7}$ can be also described with a displacement in 3D plus a rotation 
+defined by a quaternion, that is:
+
+\begin{eqnarray}
+\mathbf{p_7} &=& [x ~ y ~ z ~  q_r ~ q_x ~ q_y ~ qz ] ^ \top
+\end{eqnarray}
+
+\noindent where the quaternion elements are $[q_r, (q_x,q_y,qz)]$. A useful interpretation of quaternions
+is that of a rotation of $\theta$ radians around the axis defined by the vector $\vec{v} = (v_x,v_y,v_z) \propto (q_x,q_y,qz)$.
+The relation between $\theta$, $\vec{v}$ and the elements in the quaternion is:
+
+\begin{equation*}
+\begin{array}{cc}
+q_r = \cos\frac{\theta}{2}  &  
+  \begin{array}{rcl}
+    q_x &=& \sin\frac{\theta}{2} v_x  \\
+    q_y &=& \sin\frac{\theta}{2} v_y  \\
+    q_z &=& \sin\frac{\theta}{2} v_z  
+  \end{array}
+\end{array}
+\end{equation*}
+
+This interpretation is also represented in Figure~\ref{fig:quat}.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.50\textwidth]{quaternion.eps}
+\caption{A quaternion can be seen as a rotation around an arbitrary 3D axis.}
+\label{fig:quat}
+\end{figure}
+
+
+\subsubsection{Implementation in MRPT}
+
+Poses based on quaternions are implemented in the class \texttt{mrpt::poses::CPose3DQuat}. 
+The quaternion part of the pose is always normalized (i.e. $q_r^2+q_x^2+q_y^2+q_z^2=1$).
+
+\begin{lstlisting}
+#include <mrpt/core.h> 
+using namespace mrpt::poses; 
+using namespace mrpt::math; 
+
+CPose3DQuat   p(1.0 /* x */,2.0 /* y */,3.0 /* z */, 
+                CQuaternionDouble(1.0 /* qr */,  0.0,0.0,0.0 /* vector part */) );
+\end{lstlisting}
+
+
+\newpage
+
+
+\subsection{$4 \times 4$ transformation matrices}
+
+Any rigid transformation in 3D can be described by means of a $4 \times 4$ 
+matrix $\mathbf{P}$ with the following structure:
+
+\begin{equation}
+\mathbf{P}=\left(
+  \begin{array}{ccc|c}
+   & & & x \\
+   & \mathbf{R} & & y \\
+   & & & z \\ \hline
+   0 & 0 & 0& 1
+  \end{array}
+\right)
+\end{equation}
+
+\noindent where the $3 \times 3$ matrix $\mathbf{R}$ is 
+a rotation matrix\footnote{Also called direction cosine matrix (DCM).} 
+(the only part of $\mathbf{P}$ related to 
+the 3D rotation) and the vector $(x,y,z)$ represents the translational part of the 6D pose. 
+For such a matrix to be applicable to 3D points, they must be first represented in 
+homogeneous coordinates \cite{bloomenthal1994homogeneous} which, in our case, will consist in just considering a fourth,
+extra dimension to each point which will be always equal to the unity -- examples of this will be discussed later on. 
+
+
+\subsubsection{Implementation in MRPT}
+
+Transformation matrices themselves can be managed as any other normal $4\times 4$ matrix:
+
+\begin{lstlisting}
+#include <mrpt/core.h> 
+using namespace mrpt::math; 
+
+CMatrixDouble44  P;
+\end{lstlisting}
+
+
+
+%% ================================================
+
+\chapter{Equivalences between representations}
+
+In all the subsequent sections the focus will be on the transformation of the rotational part of 6D poses, since
+the 3D translational part between all of them are exactly equivalent. 
+
+Another point to be discussed here is how these transformations can be applied to the uncertainty 
+of any of the poses, 
+assuming it is modeled as a Gaussian distribution, by means of first 
+order linearization of the transformation functions. 
+Note that an alternative to this method is using the scaled unscented 
+transform (SUT) \cite{julier2002sut}, which may give more exact results for 
+large levels of the uncertainty but typically requires more computation time.
+
+\section{3D+YPR to 3D+Quat }
+\label{sect:ypr2quat}
+
+\subsection{Transformation}
+
+Any given rotation described as a combination of yaw ($\phi$),
+pitch ($\chi$) and roll ($\psi$) can
+be expressed as a quaternion with components $(q_r, q_x,q_y,q_z)$ 
+given by \cite{horn2001some}:
+
+\begin{eqnarray}
+  q_r(\phi,\chi,\psi) &=& \cos\frac{\psi}{2} \cos\frac{\chi}{2}  \cos\frac{\phi}{2}  + 
+  \sin\frac{\psi}{2} \sin\frac{\chi}{2} \sin\frac{\phi}{2}    \\
+  q_x(\phi,\chi,\psi) &=& \sin\frac{\psi}{2} \cos\frac{\chi}{2}  \cos\frac{\phi}{2}  - 
+  \cos\frac{\psi}{2} \sin\frac{\chi}{2} \sin\frac{\phi}{2}    \\
+  q_y(\phi,\chi,\psi) &=& \cos\frac{\psi}{2} \sin\frac{\chi}{2}  \cos\frac{\phi}{2}  + 
+  \sin\frac{\psi}{2} \cos\frac{\chi}{2} \sin\frac{\phi}{2}    \\
+  q_z(\phi,\chi,\psi) &=& \cos\frac{\psi}{2} \cos\frac{\chi}{2}  \sin\frac{\phi}{2}  -
+  \sin\frac{\psi}{2} \sin\frac{\chi}{2} \cos\frac{\phi}{2}   
+\end{eqnarray}
+
+
+\subsubsection{Implementation in MRPT}
+
+Transformation of a \texttt{CPose3D} pose object based on yaw-pitch-roll angles 
+into another of type \texttt{CPose3DQuat} based on quaternions can be done transparently 
+due the existence of an implicit conversion constructor:
+
+\begin{lstlisting}
+#include <mrpt/core.h> 
+using namespace mrpt::poses; 
+
+CPose3D  p6;
+...
+
+CPose3DQuat   p7 = p6;  // Transparent conversion
+\end{lstlisting}
+
+
+\subsection{Uncertainty}
+
+Given a Gaussian distribution over a 6D pose in yaw-pitch-roll form with 
+mean ${\mathbf{\bar{p}_6}}$ and being  $cov(\mathbf{p_6})$ its $6 \times 6$ covariance matrix, 
+the $7 \times 7$ covariance matrix of the equivalent quaternion-based form 
+is approximated by:
+
+\begin{equation}
+cov(\mathbf{p_7}) =
+\frac{\partial \mathbf{p_7}(\mathbf{p_6}) }{\partial \mathbf{p_6}} ~ 
+cov(\mathbf{p_6})  ~
+\frac{\partial \mathbf{p_7}(\mathbf{p_6}) }{\partial \mathbf{p_6}}^\top 
+\end{equation}
+
+\noindent where the Jacobian matrix is given by:
+
+\begin{equation}
+\frac{\partial \mathbf{p_7}(\mathbf{p_6}) }{\partial \mathbf{p_6}} =
+\left(
+\begin{array}{c|cccc}
+ \mathbf{I_3} & & \mathbf{0_{3\times 3}} & \\ \hline
+  & (ssc-ccs)/2 & (scs-csc)/2 & (css-scc)/2 \\
+ \mathbf{0_{4\times 3}}
+  & -(csc+scs)/2 & -(ssc+ccs)/2 & (ccc+sss)/2 \\
+  & (scc-css)/2 & (ccc-sss)/2 & (ccs-ssc)/2 \\ 
+  & (ccc+sss)/2 & -(css+scc)/2 & -(csc+scs)/2 \\ 
+\end{array}
+\right)_{7 \times 6}
+\end{equation}
+
+\noindent where the following abbreviations have been used:
+
+\begin{equation*}
+\begin{array}{ccc}
+ccc = \cos\frac{\psi}{2}\cos\frac{\chi}{2}\cos\frac{\phi}{2}  & 
+ccs = \cos\frac{\psi}{2}\cos\frac{\chi}{2}\sin\frac{\phi}{2}  & 
+csc = \cos\frac{\psi}{2}\sin\frac{\chi}{2}\cos\frac{\phi}{2}  \\
+ & ... & \\
+scc = \sin\frac{\psi}{2}\cos\frac{\chi}{2}\cos\frac{\phi}{2}  & 
+ssc = \sin\frac{\psi}{2}\sin\frac{\chi}{2}\cos\frac{\phi}{2}  & 
+sss = \sin\frac{\psi}{2}\sin\frac{\chi}{2}\sin\frac{\phi}{2}  \\
+\end{array}
+\end{equation*}
+
+
+
+\subsubsection{Implementation in MRPT}
+
+Gaussian distributions over 6D poses described as yaw-pitch-roll and quaternions 
+are implemented in the classes \texttt{CPose3DPDFGaussian} and \texttt{CPose3DQuatPDFGaussian}, respectively.
+Transforming between them is possible via an explicit transform constructor, which 
+converts both the mean and the covariance matrix:
+
+\begin{lstlisting}
+#include <mrpt/core.h> 
+using namespace mrpt::poses; 
+
+CPose3DPDFGaussian     p6( p6_mean, p6_cov ); 
+...
+
+CPose3DQuatPDFGaussian p7 = CPose3DQuatPDFGaussian(p6);  // Explicit constructor
+\end{lstlisting}
+
+
+%% ------------------
+\section{3D+Quat to 3D+YPR  }
+
+\subsection{Transformation}
+
+As mentioned in \S \ref{sect:ypr:gimbal}, the existence of degenerate cases in 
+the yaw-pitch-roll representation forces us to consider special cases in many formulas, 
+as it happens in this case when a quaternion must be converted into these angles.
+
+Firstly, assuming a normalized quaternion, we define a discriminant value $\Delta$ to be:
+
+\begin{equation}
+ \Delta = q_r q_y - q_x q_z
+\end{equation}
+
+Then, in most situations we will have $|\Delta|<1/2$, hence we can recover the
+yaw ($\phi$),
+pitch ($\chi$) and roll ($\psi$) angles as:
+
+\begin{eqnarray}
+\left\{
+\begin{array}{rcl}
+ \phi &=& \tan^{-1} \left( 2 \frac{q_r q_z + q_x q_y}{1-2(q_y^2+q_z^2)}  \right) \nonumber \\
+ \chi &=& \sin^{-1} \left( 2 \Delta \right) \label{eq:quat2ypr_1} \\
+ \psi &=& \tan^{-1} \left( 2 \frac{q_r q_x + q_y q_z}{1-2(q_x^2+q_y^2)}  \right) \nonumber
+\end{array}
+\right.
+\end{eqnarray}
+
+\noindent which can be obtained from trigonometric identities and 
+the transformation matrices associated to a quaternion and a triplet of angles yaw-pitch-roll 
+(see \S \ref{sect:ypr2mat}--\ref{sect:quat2mat}).
+On the other hand, the special cases when $|\Delta| \approx 1/2$ can be solved as:
+
+\begin{equation}
+\begin{array}{c|c}
+  \Delta = -1/2 & \Delta = 1/2 \\ \hline
+  \begin{array}{rcl}
+    \phi &=& 2 \tan^{-1} \frac{q_x}{q_r} \\
+    \chi &=& -\pi /2 \\
+    \psi &=& 0
+  \end{array} 
+&
+  \begin{array}{rcl}
+    \phi &=& -2 \tan^{-1} \frac{q_x}{q_r} \\
+    \chi &=& \pi /2 \\
+    \psi &=& 0
+  \end{array} 
+\end{array}
+\label{eq:quat2ypr_2}
+\end{equation}
+
+
+\subsubsection{Implementation in MRPT}
+
+Transforming a 6D pose from a quaternion to a yaw-pitch-roll representation is 
+achieved transparently via an implicit transform constructor:
+
+\begin{lstlisting}
+#include <mrpt/core.h> 
+using namespace mrpt::poses; 
+
+CPose3DQuat   p7;
+...
+
+CPose3D       p6 = p7;  // Transparent transformation
+\end{lstlisting}
+
+
+
+\subsection{Uncertainty}
+
+Given a Gaussian distribution over a 7D pose in quaternion form with 
+mean ${\mathbf{\bar{p}_7}}$ and being $cov(\mathbf{p_7})$ its $7 \times 7$ covariance matrix, 
+we can estimate the $6 \times 6$ covariance matrix of the equivalent yaw-pitch-roll-based 
+form by means of:
+
+\begin{equation}
+cov(\mathbf{p_6}) =
+\frac{\partial \mathbf{p_6}(\mathbf{p_7}) }{\partial \mathbf{p_7}} ~ 
+cov(\mathbf{p_7})  ~
+\frac{\partial \mathbf{p_6}(\mathbf{p_7}) }{\partial \mathbf{p_7}}^\top 
+\end{equation}
+
+\noindent where the Jacobian matrix has the following block structure:
+
+\begin{equation}
+\frac{\partial \mathbf{p_6}(\mathbf{p_7}) }{\partial \mathbf{p_7}} =
+\left(
+\begin{array}{c|c}
+ \mathbf{I_3} & \mathbf{0_{3\times 4}} \\ \hline
+ \mathbf{0_{3\times 3}} &  \frac{\partial (\phi,\chi,\psi)(q_r,q_x,q_y,q_z)}{\partial q_r,q_x,q_y,q_z}
+\end{array}
+\right)_{6 \times 7}
+\end{equation}
+
+In turn, the bottom-right sub-Jacobian matrix must account for two consecutive transformations: 
+normalization of the Jacobian (since each element has an uncertainty, but we need it normalized
+for the transformation formulas to hold), then transformation to yaw-pitch-roll form. That is:
+
+\begin{equation}
+\frac{\partial (\phi,\chi,\psi)(q_r,q_x,q_y,q_z)}{\partial q_r,q_x,q_y,q_z} =
+\frac{\partial (\phi,\chi,\psi)(q_r',q_x',q_y',q_z')}{\partial q_r',q_x',q_y',q_z'}
+\frac{\partial (q_r',q_x',q_y',q_z')(q_r,q_x,q_y,q_z)}{\partial q_r,q_,q_y,q_z}  
+\end{equation}
+
+\noindent where the second term in the product is the Jacobian of the quaternion 
+normalization (see \S \ref{sect:quat:norm}). Regarding the first term, it is the 
+Jacobian of the functions in Eq. \ref{eq:quat2ypr_1}--\ref{eq:quat2ypr_2}, taking
+into account that it can take three different forms for the cases $\chi=90^\circ$,
+$\chi=-90^\circ$ and $|\chi| \neq 90^\circ$.
+
+\subsubsection{Implementation in MRPT}
+
+This conversion can be achieved by means of an explicit transform constructor, as shown below:
+
+\begin{lstlisting}
+#include <mrpt/core.h> 
+using namespace mrpt::poses; 
+
+CPose3DQuat            p7_mean = ...
+CMatrixDouble77        p7_cov  = ...
+CPose3DQuatPDFGaussian p7(p7_mean,p7_cov);
+...
+
+CPose3DPDFGaussian     p6 = CPose3DPDFGaussian(p7);  // Explicit constructor
+\end{lstlisting}
+
+
+\section{3D+YPR to matrix }
+\label{sect:ypr2mat}
+
+\subsection{Transformation}
+
+The transformation matrix associated to a 6D pose given in yaw-pitch-roll form has this structure:
+
+\begin{equation}
+\mathbf{P}(x,y,z,\phi,\chi,\psi)=\left(
+  \begin{array}{ccc|c}
+   & & & x \\
+   & \mathbf{R}(\phi,\chi,\psi) & & y \\
+   & & & z \\ \hline
+   0 & 0 & 0& 1
+  \end{array}
+\right)
+\label{eq:matP_ypr}
+\end{equation}
+
+\noindent where the $3 \times 3$ rotation matrix $\mathbf{R}$ can be easily derived 
+from the fact that each of the three individual rotations (yaw, pitch and roll) operate
+consecutively one after the other, i.e. over the already modified axis. 
+This can be achieved by right-side multiplication of the individual rotation matrices:
+
+\begin{eqnarray}
+\mathbf{R}_z(\phi) &=& 
+\left(
+\begin{array}{ccc}
+\cos \phi & -\sin \phi & 0 \\
+\sin \phi & \cos \phi & 0 \\
+0 & 0 & 1
+\end{array}
+\right) \quad \mathrm{\text{Yaw rotates around Z}} \\
+\mathbf{R}_y(\chi) &= &
+\left(
+\begin{array}{ccc}
+\cos \chi & 0 & \sin \chi \\
+0 & 1 & 0 \\
+-\sin \chi & 0 & \cos \chi
+\end{array}
+\right) \quad \mathrm{\text{Pitch rotates around Y}} \\
+\mathbf{R}_x(\psi) &=& 
+\left(
+\begin{array}{ccc}
+1 & 0 & 0 \\
+0 & \cos \psi & -\sin \psi \\
+0 & \sin \psi &  \cos \psi 
+\end{array}
+\right) \quad \mathrm{\text{Roll rotates around X}} 
+\end{eqnarray}
+
+\noindent thus, concatenating them in the proper order ($\mathbf{R}_x$, then $\mathbf{R}_y$, then $\mathbf{R}_z$)
+we obtain the complete rotation matrix:
+
+\begin{eqnarray}
+\mathbf{R}(\phi,\chi,\psi) &=&  \mathbf{R}_z(\phi) \mathbf{R}_y(\chi) \mathbf{R}_x(\psi) \label{eq:mat_ypr} \\
+&=& 
+\left(
+\begin{array}{ccc}
+\cos \phi \cos \chi  & \cos \phi \sin \chi \sin \psi - \sin \phi \cos \psi   & \cos \phi \sin \chi \cos \psi + \sin \phi \sin \psi \\
+\sin \phi \cos \chi  & \sin \phi \sin \chi \sin \psi + \cos \phi \cos \psi  &  \sin \phi \sin \chi \cos \psi - \cos \phi \sin \psi \\
+-\sin \chi & \cos \chi \sin \psi  &  \cos \chi \cos \psi
+\end{array}
+\right) \nonumber
+\end{eqnarray}
+
+A transformation matrix is always well-defined and does not suffer of degenerate cases, but its large
+storage requirements ($4\times 4=16$ elements) makes more advisable to use other representations such 
+as 3D+YPR (3+3=6 elements) or 3D+Quat (3+4=7 elements) in many situations. 
+An important exception is the case when computation time is critical and the most common operation 
+is composing (or inverse composing) a pose with a 3D point, where matrices require about half the 
+computation time than the other methods. On the other hand, composing a pose with another pose is 
+a much more efficient operation to carry out with a 3D+Quat representation. 
+
+In any case, when dealing with uncertainties, transformation matrices are not a 
+reasonable choice due to the 
+quadratic cost of keeping their covariance matrices. 
+The most common representation of a 6D pose with uncertainty in the literature 
+are 3D+Quat forms (e.g. see \cite{davison2007mrt}), thus 
+we will not describe how to 
+obtain covariance matrices of a transformation matrix here.
+
+
+\subsubsection{Implementation in MRPT}
+
+The transformation matrix of any yaw-pitch-roll-based 6D pose stored in a 
+\texttt{CPose3D} class can be obtained as follows:
+
+\begin{lstlisting}
+#include <mrpt/core.h> 
+using namespace mrpt::math; 
+using namespace mrpt::poses; 
+
+CMatrixDouble44  M;
+CPose3D          p;
+p.getHomogeneousMatrix(M);
+\end{lstlisting}
+
+
+\section{3D+Quat to matrix }
+\label{sect:quat2mat}
+
+\subsection{Transformation}
+
+The transformation matrix associated to a 6D pose given as a 3D translation plus 
+a quaternion is simply given by:
+
+\begin{equation}
+\mathbf{P}(x,y,z,q_r,q_x,q_y,q_z)=\left(
+  \begin{array}{ccc|c}
+   q_r^2+q_x^2-q_y^2-q_z^2 	&  2(q_x q_y - q_r q_z)	&  	2(q_z q_x+q_r q_y)  & x \\
+   2(q_x q_y+q_r q_z) 		& q_r^2-q_x^2+q_y^2-q_z^2 	& 2(q_y q_z-q_r q_x) 	& y \\
+   2(q_z q_x-q_r q_y) & 2(q_y q_z+q_r q_x)  & q_r^2- q_x^2 - q_y^2 + q_z^2 & z \\ \hline
+   0 & 0 & 0& 1
+  \end{array}
+\right)
+\end{equation}
+
+
+
+\subsubsection{Implementation in MRPT}
+
+In this case the interface of \texttt{CPose3DQuat} is exactly identical to that 
+of the yaw-pitch-roll form, that is:
+
+\begin{lstlisting}
+#include <mrpt/core.h> 
+using namespace mrpt::math; 
+using namespace mrpt::poses; 
+
+CMatrixDouble44  M;
+CPose3DQuat      p;
+p.getHomogeneousMatrix(M);
+\end{lstlisting}
+
+
+
+
+%% ------------------
+\section{Matrix to 3D+YPR   }
+\label{sect:mat2ypr}
+
+\subsection{Transformation}
+
+If we consider the $4 \times 4$ transformation matrix for 
+a 6D pose in 3D+YPR form (see Eq.~(\ref{eq:matP_ypr}) and (\ref{eq:mat_ypr})):
+
+\begin{equation*}
+\begin{array}{l}
+\mathbf{P}(x,y,z,\phi,\chi,\psi)  \\
+=\left(
+  \begin{array}{ccc|c}
+   \cos \phi \cos \chi  & \cos \phi \sin \chi \sin \psi - \sin \phi \cos \psi   & \cos \phi \sin \chi \cos \psi + \sin \phi \sin \psi & x \\
+   \sin \phi \cos \chi  & \sin \phi \sin \chi \sin \psi + \cos \phi \cos \psi  &  \sin \phi \sin \chi \cos \psi - \cos \phi \sin \psi & y \\
+   -\sin \chi & \cos \chi \sin \psi  &  \cos \chi \cos \psi & z \\ \hline
+   0 & 0 & 0& 1
+  \end{array}
+\right) \\
+=\left(
+  \begin{array}{ccc|c}
+   p_{11} & p_{12}& p_{13}& p_{14} \\
+   p_{21} & p_{22}& p_{23}& p_{24} \\
+   p_{31} & p_{32}& p_{33}& p_{34} \\
+   0 & 0 & 0& 1
+  \end{array}
+\right)
+\end{array}
+\end{equation*}
+
+\noindent it is obvious that the 3D translation part can be recovered by simply:
+
+\begin{eqnarray*}
+ \left\{
+  \begin{array}{rcl}
+    x &=& p_{14} \\
+    y &=& p_{24} \\
+    z &=& p_{34} 
+  \end{array}
+  \right.
+\end{eqnarray*}
+
+Regarding the three angles yaw ($\phi$), pitch ($\chi$) and roll ($\chi$), they must be obtained 
+in two steps in order to properly handle the special cases 
+(refer to the gimbal lock problem in \S \ref{sect:ypr:gimbal}).
+Firstly, pitch is obtained from:
+
+\begin{eqnarray}
+  \chi &=& \mathrm{atan2} \left( -p_{31} , \sqrt{ p_{11}^2 + p_{21}^2 } \right) 
+\end{eqnarray}
+
+Next, depending on whether we are in a degenerate ($|\chi|=90^\circ$) or 
+non-degenerate case ($|\chi| \neq 90^\circ$), the following expressions must
+be applied\footnote{At this point, special thanks go to 
+Pablo Moreno Olalla for his work deriving robust expressions from Eq.~(\ref{eq:mat_ypr}) 
+that work for all the special cases.}:
+
+\begin{eqnarray}
+  \chi = -90^\circ \quad \longrightarrow \quad
+   \left\{
+  \begin{array}{rcl}
+    \phi  &=& \mathrm{atan2}( -p_{23}, -p_{13} ) \\
+    \psi  &=& 0 \\
+  \end{array}
+   \right. 
+\\
+  |\chi| \neq 90^\circ \quad \longrightarrow \quad
+   \left\{
+  \begin{array}{rcl}
+    \phi   &=& \mathrm{atan2}(p_{21},p_{11}) \\
+    \psi  &=&  \mathrm{atan2}(p_{32},p_{33}) \\
+  \end{array}
+   \right. 
+\\
+  \chi = 90^\circ \quad \longrightarrow \quad
+   \left\{
+  \begin{array}{rcl}
+    \phi  &=& \mathrm{atan2}( p_{23}, p_{13} ) \\
+    \psi  &=& 0 \\
+  \end{array}
+   \right. 
+\end{eqnarray}
+
+
+
+\subsubsection{Implementation in MRPT}
+
+Given a matrix \texttt{M}, the \texttt{CPose3D} representation can be obtained via
+an explicit transform constructor:
+
+\begin{lstlisting}
+#include <mrpt/core.h> 
+using namespace mrpt::math; 
+using namespace mrpt::poses; 
+
+CMatrixDouble44  M;
+...
+CPose3D          p = CPose3D(M);
+\end{lstlisting}
+
+
+\section{Matrix to 3D+Quat }
+
+\subsection{Transformation}
+
+A numerically stable method to convert a $3 \times 3$ rotation matrix into a quaternion is
+described in \cite{bar2000new}, which includes creating a temporary $4 \times 4$ matrix and 
+computing the eigenvector corresponding to its largest eigenvalue. 
+However, an alternative, more efficient method which can be applied if we are sure about 
+the matrix being orthonormal is to simply convert it firstly to a yaw-pitch-roll representation 
+(see \S \ref{sect:mat2ypr}) and then convert it 
+to a quaternion representation (see \S \ref{sect:ypr2quat}).
+
+ 
+\subsubsection{Implementation in MRPT}
+
+Given a matrix \texttt{M}, the \texttt{CPose3DQuat} representation can be obtained via
+an explicit transform constructor:
+
+\begin{lstlisting}
+#include <mrpt/core.h> 
+using namespace mrpt::math; 
+using namespace mrpt::poses; 
+
+CMatrixDouble44  M;
+...
+CPose3DQuat      p = CPose3DQuat(M);
+\end{lstlisting}
+
+
+
+
+
+%% ================================================
+\chapter{Composing a pose and a point}
+
+
+
+%% ================================================
+\chapter{Composing two poses}
+
+
+
+%% ================================================
+\chapter{Other transformations}
+
+\section{Inverse of a pose}
+
+
+\section{Normalization of a quaternion}
+\label{sect:quat:norm}
+
+
+
+%% ---------------------------------------------------------------
+%%                         BIBLIOGRAPHY
+%% ---------------------------------------------------------------
+\bibliographystyle{plain}
+\bibliography{/Trabajo/Papers/myReferences}
+
+
+\end{document}
+
