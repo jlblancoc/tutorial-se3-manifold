@@ -68,6 +68,7 @@ each of the described algorithms.
 
 
 \section{Basic definitions}
+\label{sect:basic}
 
 A \emph{pose} in 3D can be described by means of a 3D translation plus an orthonormal vector base, 
 or coordinates frame, relative to any other arbitrary coordinate reference system. 
@@ -126,6 +127,7 @@ The inverse pose composition can be also applied to 6D poses, in this case meani
 the pose $\mathbf{p}$ (in global coordinates) ``is seen'' as $\mathbf{p2}$ with respect
 to the reference frame of $\mathbf{p1}$ (this one, also in global coordinates), a 
 relationship expressed as $\mathbf{p2} = \mathbf{p} \ominus \mathbf{p1}$.
+
 
 Up to this point, poses, pose/point and pose/pose compositions have been described 
 under a purely geometrical point of view. 
@@ -204,11 +206,11 @@ A pose $\mathbf{p_7}$ can be also described with a displacement in 3D plus a rot
 defined by a quaternion, that is:
 
 \begin{eqnarray}
-\mathbf{p_7} &=& [x ~ y ~ z ~  q_r ~ q_x ~ q_y ~ qz ] ^ \top
+\mathbf{p_7} &=& [x ~ y ~ z ~  q_r ~ q_x ~ q_y ~ q_z ] ^ \top
 \end{eqnarray}
 
-\noindent where the quaternion elements are $[q_r, (q_x,q_y,qz)]$. A useful interpretation of quaternions
-is that of a rotation of $\theta$ radians around the axis defined by the vector $\vec{v} = (v_x,v_y,v_z) \propto (q_x,q_y,qz)$.
+\noindent where the quaternion elements are $[q_r, (q_x,q_y,q_z)]$. A useful interpretation of quaternions
+is that of a rotation of $\theta$ radians around the axis defined by the vector $\vec{v} = (v_x,v_y,v_z) \propto (q_x,q_y,q_z)$.
 The relation between $\theta$, $\vec{v}$ and the elements in the quaternion is:
 
 \begin{equation*}
@@ -590,7 +592,8 @@ This can be achieved by right-side multiplication of the individual rotation mat
 we obtain the complete rotation matrix:
 
 \begin{eqnarray}
-\mathbf{R}(\phi,\chi,\psi) &=&  \mathbf{R}_z(\phi) \mathbf{R}_y(\chi) \mathbf{R}_x(\psi) \label{eq:mat_ypr} \\
+\mathbf{R}(\phi,\chi,\psi) &=&  \mathbf{R}_z(\phi) \mathbf{R}_y(\chi) \mathbf{R}_x(\psi) 
+\label{eq:mat_ypr} \\
 &=& 
 \left(
 \begin{array}{ccc}
@@ -810,10 +813,225 @@ CPose3DQuat      p = CPose3DQuat(M);
 %% ================================================
 \chapter{Composing a pose and a point}
 
+In the next sections we will review how to compute the global coordinates of a point $\mathbf{a}$
+given a pose $\mathbf{p}$ and the point coordinates relative to that coordinate system $\mathbf{a'}$,
+as illustrated in Figure~\ref{fig:1}, that is, $\mathbf{a} = \mathbf{p} \oplus \mathbf{a'}$.
+
+\section{With poses in 3D+YPR form}
+
+In this case the solution is to firstly compute the $4 \times 4$ 
+transformation matrix of the pose using Eq.~\ref{eq:mat_ypr}, then proceed 
+as described in \S \ref{sect:comp_point:mat}.
+
+
+\section{With poses in 3D+Quat form}
+
+Given a pose described as $\mathbf{p_7} = [x ~ y ~ z ~  q_r ~ q_x ~ q_y ~ q_z ] ^ \top$, 
+we are interested in the coordinates of $\mathbf{a}={a_x ~ a_y ~ a_z}$ such as
+$\mathbf{a} = \mathbf{p_7} \oplus \mathbf{a'}$ for some known input point 
+$\mathbf{a'} = [a'_x ~ a'_y ~ a'_z]$. 
+
+Then, the solution is given by:
+
+\begin{equation}
+\mathbf{a} = 
+ \left(
+\begin{array}{c}
+ x \\ y \\ z 
+\end{array}
+\right)
++ \mathbf{f_{qr}} (\mathbf{p},\mathbf{a'})
+\end{equation}
+
+\noindent where the function $\mathbf{f_{qr}}(\cdot)$ is defined as:
+
+\begin{equation}
+\mathbf{f_{qr}} (\mathbf{p},\mathbf{a'}) = 
+ \left(
+\begin{array}{c}
+ a'_x + 2 \left(-(q_y^2+ q_z^2) a'_x +(q_x q_y - q_r q_z) a'_y+(q_r q_y+q_x q_z) a'_z \right)  \\
+ a'_y + 2 \left((q_r q_z+  q_x q_y) a'_x-(q_x^2 +q_z^2) a'_y+(q_y q_z-q_r q_x) a'_z \right) \\
+ a'_z + 2 \left((q_x q_z-  q_r q_y) a'_x+(q_r q_x + q_y q_z) a'_y-(q_x^2+q_y^2) a'_z \right)  \\
+\end{array}
+\right)
+\label{eq:quat_rot_point_func}
+\end{equation}
+
+\section{With poses in matrix form}
+\label{sect:comp_point:mat}
+
+Given a $4\times 4$ transformation matrix $\mathbf{M}$ corresponding to a 6D pose 
+$\mathbf{p}$ and a point in local coordinates 
+$\mathbf{a'} = [a'_x ~ a'_y ~ a'_z]$, the corresponding point in global coordinates
+$\mathbf{a} = [a_x ~ a_y ~ a_z]$ can be computed easily as:
+
+\begin{eqnarray}
+\mathbf{a} &=& \mathbf{p} \oplus \mathbf{a'} \nonumber \\
+\left(\begin{array}{c}
+ a_x \\ a_y \\ a_z \\ 1
+\end{array}\right)
+&=&
+\mathbf{M} 
+\left(\begin{array}{c}
+ a'_x \\ a'_y \\ a'_z \\ 1
+\end{array}\right)
+\end{eqnarray}
+
+\noindent where homogeneous coordinates (the column matrices) have been used for the 3D points.
+
+
+\section{About inverse composition}
+
+Regarding the inverse composition operation, such as in
+$\mathbf{a'} = \mathbf{a} \ominus \mathbf{p}$ as 
+described in the example of \S \ref{sect:basic}, 
+there is an interesting result that naturally arises from the matrix form 
+explained in the previous section.
+
+By definition, we have:
+
+\begin{eqnarray}
+ \mathbf{a} = \mathbf{p} \oplus \mathbf{a'}   
+\leftrightarrow
+ \mathbf{a'} = \mathbf{a} \ominus \mathbf{p}
+\label{eq:comp_invcomp}
+\end{eqnarray}
+
+Then, starting with $\mathbf{a} = \mathbf{p} \oplus \mathbf{a'}$
+and using the matrix form, we can proceed as follows:
+
+\begin{eqnarray*}
+ \mathbf{a} &=& \mathbf{p} \oplus \mathbf{a'}    \\
+ \mathbf{A} &=& \mathbf{P}  \mathbf{A'}  \quad \text{(Representation as matrices)}  \\
+ \mathbf{P}^{-1} \mathbf{A} &=& \mathbf{P}^{-1} \mathbf{P}  \mathbf{A'} \\
+ \mathbf{P}^{-1} \mathbf{A} &=& \mathbf{A'}  \\
+ (\ominus \mathbf{p}) \oplus \mathbf{a} &=& \mathbf{a'}  \quad \text{(Back to $\oplus$/$\ominus$ notation)} \\
+ (\ominus \mathbf{p}) \oplus \mathbf{a} &=& \mathbf{a} \ominus \mathbf{p}  \quad \text{(Using Eq.~\ref{eq:comp_invcomp})}
+\end{eqnarray*}
+
+\noindent where $(\ominus \mathbf{p})$ stands for the inverse of a pose $\mathbf{p}$. 
+Thus, the result is that any inverse pose composition can be transformed into a normal 
+pose composition, by switching the order of the two arguments
+($\mathbf{a}$ and $\mathbf{p}$ in this case) and inverting the second one.
 
 
 %% ================================================
 \chapter{Composing two poses}
+
+Next sections are devoted to computing the composed pose $\mathbf{p}$ resulting
+from a concatenation of two 6D poses $\mathbf{p_1}$ and $\mathbf{p_2}$, 
+that is, $\mathbf{p} = \mathbf{p_1} \oplus \mathbf{p_2}$. 
+An example of this operation was shown in Figure~\ref{fig:comp_2poses}.
+
+\section{With poses in 3D+YPR form}
+
+\subsection{Pose composition}
+
+There is not simple
+equation for pose composition for poses described as triplets 
+of yaw-pitch-roll angles, thus it is recommended to transform them into 
+either 3D+Quad or matrix form 
+(see, \S \ref{sect:ypr2quat} and \S \ref{sect:ypr2mat}, respectively), 
+then compose them as described in the following sections and finally
+convert the result back into 3D+YPR form.
+
+\subsubsection{Implementation in MRPT}
+
+Pose composition for 3D+YPR poses is implemented via overloading 
+of the ``\texttt{+}'' C++ operator 
+(using matrix representation to perform the intermediary computations), 
+such as composing can be simply 
+writen down as:
+
+\begin{lstlisting}
+#include <mrpt/core.h> 
+using namespace mrpt::poses; 
+
+CPose3D  p1,p2; 
+...
+CPose3D  p = p1 + p2;    // Pose composition
+\end{lstlisting}
+
+
+\section{With poses in 3D+Quat form}
+
+\subsection{Pose composition}
+
+Given two poses 
+$\mathbf{p_1} = [x_1 ~ y_1 ~ z_1 ~  q_{r1} ~ q_{x1} ~ q_{y1} ~ q_{z1} ] ^ \top$
+and 
+$\mathbf{p_2} = [x_2 ~ y_2 ~ z_2 ~  q_{r2} ~ q_{x2} ~ q_{y2} ~ q_{z2} ] ^ \top$, 
+we are interested in their composition $\mathbf{p}=\mathbf{p_1} \oplus \mathbf{p_2}$.
+
+Operating, this pose can be found to be:
+
+\begin{equation}
+\mathbf{p} = 
+\left(\begin{array}{c}
+ x \\ y \\ z \\ q_r \\ q_x \\ q_y \\ q_z      
+\end{array}\right)
+=\mathbf{f_{qc}}(\mathbf{p_1},\mathbf{p_2})
+=
+\left(\begin{array}{c}
+
+  \left(\begin{array}{c}
+    x_1 \\ y_1 \\ z_1
+  \end{array}\right) 
+  + 
+  \mathbf{f_{qr}} (\mathbf{p_1}, [ x_2 ~ y_2 ~ z_2]^\top ) \\
+q_{r1} q_{r2} - q_{x1} q_{x2} - q_{y1} q_{y2} - q_{z1} q_{z2} \\
+q_{r1} q_{x2} + q_{r2} q_{x1} + q_{y1} q_{z2} - q_{y2} q_{z1} \\
+q_{r1} q_{y2} + q_{r2} q_{y1} + q_{z1} q_{x2} - q_{z2} q_{x1} \\
+q_{r1} q_{z2} + q_{r2} q_{z1} + q_{x1} q_{y2} - q_{x2} q_{y1}
+\end{array}\right)
+\end{equation}
+
+\noindent with the function $\mathbf{f_{qr}}(\cdot)$ already defined in Eq.~\ref{eq:quat_rot_point_func}.
+
+
+\subsubsection{Implementation in MRPT}
+
+Pose composition for 3D+Quat poses is implemented via overloading 
+of the ``\texttt{+}'' operator, such as composing can be simply 
+writen down as:
+
+\begin{lstlisting}
+#include <mrpt/core.h> 
+using namespace mrpt::poses; 
+
+CPose3DQuat  p1,p2; 
+...
+CPose3DQuat  p = p1 + p2;    // Pose composition
+\end{lstlisting}
+
+
+\section{With poses in matrix form}
+\label{sect:comp_point:mat}
+
+\subsection{Pose composition}
+
+Given a pair of $4\times 4$ transformation matrices 
+$\mathbf{M_1}$ and $\mathbf{M_2}$ corresponding to two 6D poses
+$\mathbf{p_1}$ and $\mathbf{p_2}$, we can compute the 
+matrix $\mathbf{M}$ for their composition $\mathbf{p} = \mathbf{p_1} \oplus \mathbf{p_2}$ 
+simply as:
+
+\begin{equation}
+\mathbf{M} =  \mathbf{M_1}  \mathbf{M_2}
+\end{equation}
+
+\subsubsection{Implementation in MRPT}
+
+In this case, operate just like with ordinary matrices:
+
+\begin{lstlisting}
+#include <mrpt/core.h> 
+using namespace mrpt::poses; 
+
+CMatrixDouble44  M1, M2;
+...
+CMatrixDouble44  M = M1 * M2;  // Matrix multiplication
+\end{lstlisting}
 
 
 
