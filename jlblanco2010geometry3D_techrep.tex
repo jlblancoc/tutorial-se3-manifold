@@ -1113,10 +1113,10 @@ The Jacobians of the pose composition function $\mathbf{f_{qc}}(\cdot)$ are give
 \left(
   \begin{array}{ccccccc}
      & & \left. \frac{\partial \mathbf{f_{qr}} (\mathbf{p_1}, [ x_2 ~ y_2 ~ z_2]^\top ) }{\partial \mathbf{p_1}} \right|_{3\times 7}   & &  \\ \hline
-   0 & 0 & 0 & q_{r2} &-q_{x2} &-q_{y2} &-q_{z2}  \\
-   0 & 0 & 0 & q_{x2} & q_{r2} & q_{z2} &-q_{y2}  \\
-   0 & 0 & 0 & q_{y2} &-q_{z2} & q_{r2} & q_{x2}  \\
-   0 & 0 & 0 & q_{z2} & q_{y2} &-q_{x2} & q_{r2}   
+    &  &  			& q_{r2} &-q_{x2} &-q_{y2} &-q_{z2}  \\
+    & & \mathbf{0}_{4\times 3}  	& q_{x2} & q_{r2} & q_{z2} &-q_{y2}  \\
+    & &  			& q_{y2} &-q_{z2} & q_{r2} & q_{x2}  \\
+    & &  			& q_{z2} & q_{y2} &-q_{x2} & q_{r2}   
   \end{array}
 \right) 
 \\
@@ -1125,12 +1125,14 @@ The Jacobians of the pose composition function $\mathbf{f_{qc}}(\cdot)$ are give
 \right|_{7 \times 7} 
 = 
 \left(
-  \begin{array}{ccccccc}
-     & & \left. \frac{\partial \mathbf{f_{qr}} (\mathbf{p_1}, [ x_2 ~ y_2 ~ z_2]^\top ) }{\partial \mathbf{p_2}} \right|_{3\times 7}  & &  \\ \hline
-   0 & 0 & 0 & q_{r1} &-q_{x1} &-q_{y1} &-q_{z1}  \\
-   0 & 0 & 0 & q_{x1} & q_{r1} &-q_{z1} & q_{y1}  \\
-   0 & 0 & 0 & q_{y1} & q_{z1} & q_{r1} &-q_{x1}  \\
-   0 & 0 & 0 & q_{z1} &-q_{y1} & q_{x1} & q_{r1}   
+  \begin{array}{ccc|cccc}
+     & \left. 
+	\frac{\partial \mathbf{f_{qr}} (\mathbf{p_1}, [ x_2 ~ y_2 ~ z_2]^\top ) }{\partial [ x_2 ~ y_2 ~ z_2]^\top} \right|_{3\times 3} 
+      &  & & \mathbf{0}_{3 \times 4}  \\ \hline
+   & & 				& q_{r1} &-q_{x1} &-q_{y1} &-q_{z1}  \\
+   & \mathbf{0}_{4\times 3} &	& q_{x1} & q_{r1} &-q_{z1} & q_{y1}  \\
+   & & 				& q_{y1} & q_{z1} & q_{r1} &-q_{x1}  \\
+   & & 				& q_{z1} &-q_{y1} & q_{x1} & q_{r1}   
   \end{array}
 \right) 
 \\
