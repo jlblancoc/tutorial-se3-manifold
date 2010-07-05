@@ -1,0 +1,115 @@
+\voffset=-2.04cm%
+\topmargin=1cm %
+\textheight=22cm %
+\textwidth=17cm %
+\headheight = 3.5cm
+\oddsidemargin=-0.54cm
+
+% --------------------------------------
+% CHANGE TITLE OF CHAPTERS AND SECTIONS
+% --------------------------------------
+\titleformat{\chapter}
+{\titlerule
+\vspace{.8ex}%
+\LARGE \bfseries}
+{\thechapter.}{.5em}{}[\titlerule]
+
+\titleformat{\section}
+{\vspace{.8ex}%
+\Large \bfseries}
+{\thesection.}{.5em}{}
+
+\newcommand{\HRuleW}{\rule{\linewidth}{1.2mm}}
+\newcommand{\HRuleN}{\rule{\linewidth}{0.1mm}}
+
+% --------------------------------------
+% TITLE PAGE
+% --------------------------------------
+% Upper part of the page
+\newcommand{\TRInfo}[6]{
+    \begin{titlepage}
+    \begin{center}
+
+        \HRuleW \\[0.4cm]
+        \LARGE \textbf{#1}\\[0.2cm]
+        \Large #2\\
+        \HRuleW
+
+        \vspace{2.0cm}
+
+        \textbf{Technical report \##5}\\
+        \textbf{#6}
+
+    \end{center}
+
+        \vfill
+        \begin{minipage}[b]{0.4\textwidth}
+        \begin{flushleft}
+        \includegraphics[width=0.3\textwidth]{./LOGO_UMA.eps}
+        \end{flushleft}
+        \end{minipage}
+        \hfill
+        \begin{minipage}[b]{0.45\textwidth}
+        \begin{flushleft}
+        \scriptsize \textbf{Málaga, \today}\\\medskip
+        MAPIR: Grupo de Percepción y Robótica\\
+        Dpto. de Ingeniería de Sistemas y Automática\\\medskip
+        ETS Ingeniería Informática\\
+        Campus de Teatinos s/n \textbf - 29071 Málaga\\
+        Tfno: 952132724 \textbf - Fax: 952133361\\
+        http://babel.isa.uma.es/mapir \textbf - http://www.isa.uma.es
+        \end{flushleft}
+        \end{minipage}
+
+        \HRuleW
+
+    \end{titlepage}
+
+    \newcommand{\TRTitle}{#1}
+    \newcommand{\TRPartners}{#3}
+    \newcommand{\TRRef}{Technical report \##5}
+} %
+
+
+%\newcommand\HdrTable{
+%\begin{tabular}{|m{0.15\textwidth}|m{0.55\textwidth}|m{0.25\textwidth}|}\hline
+%\multirow{2}{*}{\centering \includegraphics[width=0.15\textwidth]{./LOGO_UMA.eps}} & \centering \textbf{\textsc{\TRTitle}} & \centering \scriptsize{ Dpto. de Ingenierï¿½a de Sistemas y Automï¿½tica ETS Ingenierï¿½a Informï¿½tica}\\
+%& \centering{\TRPartners} & Campus de Teatinos s/n 29071 Mï¿½laga\\
+%\centering \scriptsize Fecha: \ddmmyydate \today & \centering \scriptsize{Ref: \TRRef} & Tfno: 952132724 http://www.isa.uma.es\hline
+%\end{tabular}%
+%}
+
+%\newcommand\HdrTable{
+%\begin{tabular}{m{0.15\textwidth}m{0.55\textwidth}m{0.25\textwidth}}
+%\centering \includegraphics[width=0.15\textwidth]{./LOGO_UMA.eps} & \centering \textbf{\textsc{\TRTitle}} \newline\newline\newline \centering \TRPartners & \centering \scriptsize Dpto. de Ingenierï¿½a de \newline Sistemas y Automï¿½tica \newline\newline ETS Ingenierï¿½a Informï¿½tica \newline Campus de Teatinos s/n \newline 29071 Mï¿½laga \newline\newline Tfno: 952132724 \newline http://www.isa.uma.es\\\hline
+%%\centering \scriptsizeFecha: \ddmmyydate \today & \centering \scriptsize Ref: \TRRef & \\\hline
+%\end{tabular}%
+%}
+
+\newcommand\HdrTable{
+\begin{tabular}{|m{0.75\textwidth}|m{0.25\textwidth}|}\hline
+%\includegraphics[width=0.10\textwidth]{./LOGO_UMA.eps} %% JL: Ocupan un monton mas los docs solo por esto!!
+\centering \textbf{\textsc{\TRTitle}} \newline\newline \centering \TRPartners & 
+\scriptsize 
+ \TRRef \newline 
+ ~ \newline 
+ Dpto. de Ingeniería de Sistemas y Automática \newline 
+ \texttt{http://babel.isa.uma.es/}
+\\ \hline
+\end{tabular}%
+}
+
+% --------------------------------------
+% NEW USER-DEFINED COMMANDS
+% --------------------------------------
+\newcommand{\PageStyle}{
+    \pagestyle{fancyplain} %
+    %\fancyhf{} %
+    %\fancyfoot{\footnotesize
+    %Documento confidencial. Prohibida su reproducción total y parcial.\hfill Página \thepage\ de \pageref{LastPage}
+    %} %
+    \fancyhead[CE,CO]{\HdrTable} %
+} %
+
+
+

@@ -8,27 +8,39 @@
 
 \usepackage{color}
 \usepackage{listings}
+\usepackage[utf8x]{inputenc}
 
+\usepackage{fancyhdr}               % Cabeceras
+%\usepackage[dvips]{graphicx}
+\usepackage{titlesec}
+\usepackage{color}
+\usepackage{colortbl}
+\usepackage{lastpage}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{datetime}
+
+\input{MAPIR_techrep_template.tex}
+  
 
 %% This MUST BE the last include:
 \usepackage[ps2pdf,bookmarks=true,breaklinks=true,linkbordercolor={0 0 1}]{hyperref}
 
 
-\addtolength{\oddsidemargin}{-.5in}
-\addtolength{\evensidemargin}{-.5in}
-\addtolength{\textwidth}{1.0in}
+% \addtolength{\oddsidemargin}{-.5in}
+% \addtolength{\evensidemargin}{-.5in}
+% \addtolength{\textwidth}{1.0in}
 \addtolength{\topmargin}{-.5in}
-\addtolength{\textheight}{1.0in}
+% \addtolength{\textheight}{1.0in}
 
 
 % Title Page
-\title{6D poses as Euler angles, transformation matrices and quaternions: equivalences, compositions and uncertainty}
-\author{Jose-Luis Blanco\\jlblanco@ctima.uma.es\\~\\Technical Report\\~\\
-MAPIR Group\\University of M\'alaga, Spain}
+% \title{6D poses as Euler angles, transformation matrices and quaternions: equivalences, compositions and uncertainty}
+% \author{Jose-Luis Blanco\\jlblanco@ctima.uma.es\\~\\Technical Report\\~\\
+% MAPIR Group\\University of M\'alaga, Spain}
 
 
 \begin{document}
-
 
 
 
@@ -43,8 +55,16 @@ MAPIR Group\\University of M\'alaga, Spain}
 \lstset{basicstyle=\ttfamily\scriptsize} %%\footnotesize}
 
 
-\maketitle
+\title{}
+\author{\\\\~\\Technical Report\\~\\
+of M\'alaga, Spain}
 
+\TRInfo{6D poses as Euler angles, transformation matrices and quaternions: equivalences, compositions and uncertainty}
+{Jose-Luis Blanco\\jlblanco@ctima.uma.es}
+{MAPIR Group}{}{012010}{Date: \ddmmyyyydate \today }
+\PageStyle
+
+%\maketitle
 \pagestyle{plain}
 
 \begin{abstract}
@@ -60,8 +80,10 @@ It will be described:
 is affected by these transformations and compositions, 
 including subtle details as the need for applying the normalization Jacobians 
 when dealing with quaternions.
-The text also reflects which MRPT C++ library functions implement
-each of the described algorithms.
+The text also reflects which MRPT C++ library\footnote{\texttt{http://www.mrpt.org/}} functions implement
+each of the described algorithms. 
+All those implementations have been thoroughly validated by means 
+of several unit tests.
 \end{abstract}
 
 \tableofcontents
@@ -141,7 +163,7 @@ most commonly employed mathematical representations.
 
 \newpage
 
-\section{Common representations}
+\section{Common parameterizations}
 
 
 \subsection{3D translation plus yaw-pitch-roll (3D+YPR)}
@@ -194,7 +216,7 @@ special cases, as will be seen in some of the transformations described later on
 Poses based on yaw-pitch-roll angles are implemented in the C++ class \texttt{mrpt::poses::CPose3D}:
 
 \begin{lstlisting}
-#include <mrpt/core.h> 
+#include <mrpt/base.h> 
 using namespace mrpt::poses; 
 
 CPose3D   p(1.0 /* x */,2.0 /* y */,3.0 /* z */, 
@@ -244,7 +266,7 @@ Poses based on quaternions are implemented in the class \texttt{mrpt::poses::CPo
 The quaternion part of the pose is always normalized (i.e. $q_r^2+q_x^2+q_y^2+q_z^2=1$).
 
 \begin{lstlisting}
-#include <mrpt/core.h> 
+#include <mrpt/base.h> 
 using namespace mrpt::poses; 
 using namespace mrpt::math; 
 
@@ -286,7 +308,7 @@ extra dimension to each point which will be always equal to the unity -- example
 Transformation matrices themselves can be managed as any other normal $4\times 4$ matrix:
 
 \begin{lstlisting}
-#include <mrpt/core.h> 
+#include <mrpt/base.h> 
 using namespace mrpt::math; 
 
 CMatrixDouble44  P;
@@ -338,7 +360,7 @@ into another of type \texttt{CPose3DQuat} based on quaternions can be done trans
 due the existence of an implicit conversion constructor:
 
 \begin{lstlisting}
-#include <mrpt/core.h> 
+#include <mrpt/base.h> 
 using namespace mrpt::poses; 
 
 CPose3D  p6;
@@ -402,7 +424,7 @@ Transforming between them is possible via an explicit transform constructor, whi
 converts both the mean and the covariance matrix:
 
 \begin{lstlisting}
-#include <mrpt/core.h> 
+#include <mrpt/base.h> 
 using namespace mrpt::poses; 
 
 CPose3DPDFGaussian     p6( p6_mean, p6_cov ); 
@@ -471,7 +493,7 @@ Transforming a 6D pose from a quaternion to a yaw-pitch-roll representation is
 achieved transparently via an implicit transform constructor:
 
 \begin{lstlisting}
-#include <mrpt/core.h> 
+#include <mrpt/base.h> 
 using namespace mrpt::poses; 
 
 CPose3DQuat   p7;
@@ -515,7 +537,7 @@ for the transformation formulas to hold), then transformation to yaw-pitch-roll 
 \begin{equation}
 \frac{\partial (\phi,\chi,\psi)(q_r,q_x,q_y,q_z)}{\partial q_r,q_x,q_y,q_z} =
 \frac{\partial (\phi,\chi,\psi)(q_r',q_x',q_y',q_z')}{\partial q_r',q_x',q_y',q_z'}
-\frac{\partial (q_r',q_x',q_y',q_z')(q_r,q_x,q_y,q_z)}{\partial q_r,q_,q_y,q_z}  
+\frac{\partial (q_r',q_x',q_y',q_z')(q_r,q_x,q_y,q_z)}{\partial q_r,q_x,q_y,q_z}  
 \end{equation}
 
 \noindent where the second term in the product is the Jacobian of the quaternion 
@@ -529,7 +551,7 @@ $\chi=-90^\circ$ and $|\chi| \neq 90^\circ$.
 This conversion can be achieved by means of an explicit transform constructor, as shown below:
 
 \begin{lstlisting}
-#include <mrpt/core.h> 
+#include <mrpt/base.h> 
 using namespace mrpt::poses; 
 
 CPose3DQuat            p7_mean = ...
@@ -631,7 +653,7 @@ The transformation matrix of any yaw-pitch-roll-based 6D pose stored in a
 \texttt{CPose3D} class can be obtained as follows:
 
 \begin{lstlisting}
-#include <mrpt/core.h> 
+#include <mrpt/base.h> 
 using namespace mrpt::math; 
 using namespace mrpt::poses; 
 
@@ -668,7 +690,7 @@ In this case the interface of \texttt{CPose3DQuat} is exactly identical to that
 of the yaw-pitch-roll form, that is:
 
 \begin{lstlisting}
-#include <mrpt/core.h> 
+#include <mrpt/base.h> 
 using namespace mrpt::math; 
 using namespace mrpt::poses; 
 
@@ -772,7 +794,7 @@ Given a matrix \texttt{M}, the \texttt{CPose3D} representation can be obtained v
 an explicit transform constructor:
 
 \begin{lstlisting}
-#include <mrpt/core.h> 
+#include <mrpt/base.h> 
 using namespace mrpt::math; 
 using namespace mrpt::poses; 
 
@@ -801,7 +823,7 @@ Given a matrix \texttt{M}, the \texttt{CPose3DQuat} representation can be obtain
 an explicit transform constructor:
 
 \begin{lstlisting}
-#include <mrpt/core.h> 
+#include <mrpt/base.h> 
 using namespace mrpt::math; 
 using namespace mrpt::poses; 
 
@@ -859,32 +881,79 @@ Then, the solution is given by:
 
 \subsubsection{Implementation in MRPT}
 
+A pose-point composition can be evaluated by means of:
+
+\begin{lstlisting}
+#include <mrpt/base.h> 
+using namespace mrpt::poses; 
+using namespace mrpt::math; 
+
+CPose3DQuat  q;
+TPoint3D     in_p, out_p;
+...
+q.composePoint(in_p, out_p);
+\end{lstlisting}
+
 
 \subsection{Uncertainty}
 
-XXXX
+Given a Gaussian distribution over a 7D pose in quaternion form with 
+mean ${\mathbf{\bar{p}_7}}$ and being $cov(\mathbf{p_7})$ its $7 \times 7$ covariance matrix, 
+and being ${\mathbf{\bar{a'}}}$ and $cov(\mathbf{a'})$ the mean and covariance of the 3D point 
+$\mathbf{a'}$, respectively, the approximated covariance of the transformed point 
+$\mathbf{a} = \mathbf{p_7} \oplus \mathbf{a'}$ is given by:
+
+\begin{equation}
+cov(\mathbf{a}) =
+\frac{\partial \mathbf{f_{qr}} (\mathbf{p},\mathbf{a})}{\partial \mathbf{p}} ~
+cov(\mathbf{p_7})  ~
+\frac{\partial \mathbf{f_{qr}} (\mathbf{p},\mathbf{a})}{\partial \mathbf{p}}^\top 
++
+\frac{\partial \mathbf{f_{qr}} (\mathbf{p},\mathbf{a})}{\partial \mathbf{a}} ~ 
+cov(\mathbf{a'})  ~
+\frac{\partial \mathbf{f_{qr}} (\mathbf{p},\mathbf{a})}{\partial \mathbf{a}}^\top
+\end{equation}
+
 
 The Jacobian matrices are:
-
-METER NORMALIZATION.
 
 \small{
 \begin{equation}
  \begin{array}{l}
 \left. 
 \frac{\partial \mathbf{f_{qr}} (\mathbf{p},\mathbf{a})}{\partial \mathbf{p}} 
-\right|_{3 \times 7} = \\
-  2 
+\right|_{3 \times 7} = 
   \left(
-  \begin{array}{ccccccc}
-    \frac{1}{2}  & 0 & 0 & -q_z a_y +q_y a_z   & q_y a_y + q_z a_z   &   -2q_y a_x + q_x a_y +q_r a_z & -2q_z a_x - q_r a_y +q_x a_z \\ 
-    0  & \frac{1}{2} & 0 & q_z a_x - q_x a_z   & q_y a_x - 2q_x a_y -q_r a_z  & q_x a_x +q_z a_z   & q_r a_x - 2 q_z a_y +q_y a_z \\
-    0  & 0 & \frac{1}{2} & -q_y a_x + q_x a_y  & q_z a_x + q_r a_y - 2q_x a_z  & -q_r a_x + q_z a_y - 2 q_y a_z  & q_x a_x + q_y a_y \\    
+  \begin{array}{cccc}
+    1  & 0 & 0 & ~ \\ 
+    0  & 1 & 0 & \frac{\partial \mathbf{f_{qr}} (\mathbf{p},\mathbf{a})}{\partial [qr ~ qx ~ qy ~ qz]}  \\
+    0  & 0 & 1 & ~ \\    
   \end{array}
   \right)
  \end{array}
 \label{eq:quat_rot_point_func_jacob1}
 \end{equation}
+
+\noindent with the auxiliary term $\frac{\partial \mathbf{f_{qr}} (\mathbf{p},\mathbf{a})}{\partial [qr ~ qx ~ qy ~ qz]} $ 
+including the normalization Jacobian (see \S \ref{sect:quat:norm}):
+
+\begin{eqnarray}
+\frac{\partial \mathbf{f_{qr}} (\mathbf{p},\mathbf{a})}{\partial [qr ~ qx ~ qy ~ qz]} 
+  &=& 
+  2
+  \left(
+  \begin{array}{ccccccc}
+    -q_z a_y +q_y a_z   & q_y a_y + q_z a_z   &   -2q_y a_x + q_x a_y +q_r a_z & -2q_z a_x - q_r a_y +q_x a_z \\ 
+    q_z a_x - q_x a_z   & q_y a_x - 2q_x a_y -q_r a_z  & q_x a_x +q_z a_z   & q_r a_x - 2 q_z a_y +q_y a_z \\
+    -q_y a_x + q_x a_y  & q_z a_x + q_r a_y - 2q_x a_z  & -q_r a_x + q_z a_y - 2 q_y a_z  & q_x a_x + q_y a_y \\    
+  \end{array}
+  \right)
+   \nonumber \\
+  & \times  &
+\frac{\partial (q_r',q_x',q_y',q_z')(q_r,q_x,q_y,q_z)}{\partial q_r,q_x,q_y,q_z} 
+\end{eqnarray}
+
+The other Jacobian is given by:
 
 \begin{equation}
  \begin{array}{l}
@@ -906,6 +975,20 @@ METER NORMALIZATION.
 
 
 \subsubsection{Implementation in MRPT}
+
+There is not a direct method to implement a pose-point composition with uncertainty, 
+but the method ``composePoint()'' returns the two Jacobians needed for its computation:
+
+\begin{lstlisting}
+#include <mrpt/base.h> 
+using namespace mrpt::poses; 
+using namespace mrpt::math; 
+
+CPose3DQuat  q;
+CMatrixFixedNumeric<double,3,3>  df_dpoint;
+CMatrixFixedNumeric<double,3,7>  df_dpose;
+q.composePoint(lx,ly,lz,gx,gy,gz, &df_dpoint, &df_dpose);
+\end{lstlisting}
 
 
 
@@ -944,12 +1027,18 @@ as illustrated in Figure~\ref{fig:1}, that is, $\mathbf{a'} = \mathbf{a} \ominus
 
 \section{With poses in 3D+YPR form}
 
+In this case it's preferred to transform the 3D pose to either a 3D+Quat or a matrix form, then
+perform the transformation as described in the following sections.
+
 
 \section{With poses in 3D+Quat form}
 \label{sect:point_inv:quat}
 
-
 \subsection{Inverse transformation}
+
+Given a 7D-pose $\mathbf{p_7}=[x ~ y ~ z ~ qr ~ qx ~ qy ~ qz]^\top$ and a point in 
+global coordinates $\mathbf{a} = [a_x ~ a_y ~ a_z]^\top$, the point coordinates 
+relative to $\mathbf{p_7}$, that is, $\mathbf{a'} = \mathbf{a} \ominus \mathbf{p_7}$, are given by:
 
 
 \begin{eqnarray}
@@ -966,43 +1055,143 @@ as illustrated in Figure~\ref{fig:1}, that is, $\mathbf{a'} = \mathbf{a} \ominus
 
 \subsubsection{Implementation in MRPT}
 
+Given a 7D-pose as an object of type \texttt{CPose3DQuat}, one can invoke its method 
+\texttt{inverseComposePoint()} which, in one of its signatures, reads:
+
+\begin{lstlisting}
+#include <mrpt/base.h> 
+using namespace mrpt::poses; 
+using namespace mrpt::math; 
+
+CPose3DQuat  q;
+TPoint3D     in_p, out_p;
+...
+q.inverseComposePoint(in_p, out_p);
+\end{lstlisting}
+
 
 \subsection{Uncertainty}
+
+Given a Gaussian distribution over a 7D pose in 3D+Quar form with 
+mean $\mathbf{\bar{p}_7}$ and being $cov(\mathbf{p_7})$ its $7 \times 7$ covariance matrix,
+and assuming that a 3D point follows an (independent) Gaussian distribution 
+with mean $\mathbf{\bar{a}}$ and $3 \times 3$ covariance $cov(\mathbf{a})$, 
+we can estimate the covariance of the transformed local point $\mathbf{a'}$ 
+as:
+
+\begin{equation}
+cov(\mathbf{a'}) =
+\frac{\partial \mathbf{f_{qri}}( \mathbf{a}, \mathbf{p} )}{\partial \mathbf{p_7}}
+cov(\mathbf{p_7})  ~
+\frac{\partial \mathbf{f_{qri}}( \mathbf{a}, \mathbf{p} )}{\partial \mathbf{p_7}}^\top 
++
+\frac{\partial \mathbf{f_{qri}}( \mathbf{a}, \mathbf{p} )}{\partial \mathbf{a}}
+cov(\mathbf{a})  ~
+\frac{\partial \mathbf{f_{qri}}( \mathbf{a}, \mathbf{p} )}{\partial \mathbf{a}}^\top 
+\end{equation}
+
+\noindent where the Jacobian matrices are given by:
 
 \begin{eqnarray}
 \frac{ \partial \mathbf{f_{qri}}( \mathbf{a}, \mathbf{p} )}{\partial \mathbf{a}} = 
 \left(\begin{array}{ccc} 
-- 2*qy^2 - 2*qz^2 + 1  &    2*qx*qy - 2*qr*qz  &     2*qr*qy + 2*qx*qz \\
-2*qr*qz + 2*qx*qy &   - 2*qx^2 - 2*qz^2 + 1 &   2*qy*qz - 2*qr*qx \\
-2*qx*qz - 2*qr*qy &   2*qr*qx + 2*qy*qz & - 2*qx^2 - 2*qy^2 + 1 \\
+1 - 2 (q_y^2 + q_z^2)   &    2 q_x q_y + 2 qr q_z  &     - 2 qr q_y + 2 q_x q_z \\
+-2 qr q_z + 2 q_x q_y &   1 - 2 (q_x^2 + q_z^2) &   2 q_y q_z + 2 qr q_x \\
+2 q_x q_z + 2 qr q_y &   -2 qr q_x + 2 q_y q_z & 1 - 2 (q_x^2 + q_y^2 ) \\
 \end{array}\right) 
 \end{eqnarray}
 
-
-METER NORMALIZATION.
-CAMBIAR SIGNOS QX,QY,QZ:
+\noindent and, if we define 
+$\Delta x = (a_x - x)$, $\Delta y = (a_x - x)$ and $\Delta z = (a_z - z)$, we can 
+write the Jacobian with respect to the pose as:
 
 \begin{eqnarray}
 \frac{ \partial \mathbf{f_{qri}}( \mathbf{a}, \mathbf{p} )}{\partial \mathbf{p}} = 
-\left(\begin{array}{ccc|cccc} 
-2*qy^2 + 2*qz^2 - 1 &   2*qr*qz - 2*qx*qy &  - 2*qr*qy - 2*qx*qz &  2*qy*(az - z) - 2*qz*(ay - y) &                  2*qy*(ay - y) + 2*qz*(az - z) & 
-2*qx*(ay - y) - 4*qy*(ax - x) + 2*qr*(az - z) &  2*qx*(az - z) - 2*qr*(ay - y) - 4*qz*(ax - x) 
+\left(\begin{array}{ccc|c} 
+2 q_y^2 + 2 q_z^2 - 1 &   -2 q_r q_z - 2 q_x q_y &  2 q_r q_y - 2 q_x q_z &  ~ 
 \\
-- 2*qr*qz - 2*qx*qy &  2*qx^2 + 2*qz^2 - 1 &    2*qr*qx - 2*qy*qz &  2*qz*(ax - x) - 2*qx*(az - z) &  2*qy*(ax - x) - 4*qx*(ay - y) - 2*qr*(az - z) &         
-2*qx*(ax - x) + 2*qz*(az - z) &  2*qr*(ax - x) - 4*qz*(ay - y) + 2*qy*(az - z)
+2 q_r q_z - 2 q_x q_y &  2 q_x^2 + 2 q_z^2 - 1   &  -2 q_r q_x - 2 q_y q_z &  
+  \frac{ \partial \mathbf{f_{qrir}}( \mathbf{a}, \mathbf{p} )}{\partial \mathbf{p}}
 \\
-2*qr*qy - 2*qx*qz &  - 2*qr*qx - 2*qy*qz &  2*qx^2 + 2*qy^2 - 1 &  2*qx*(ay - y) - 2*qy*(ax - x) &  2*qz*(ax - x) + 2*qr*(ay - y) - 4*qx*(az - z) & 
-2*qz*(ay - y) - 2*qr*(ax - x) - 4*qy*(az - z) &  2*qx*(ax - x) + 2*qy*(ay - y)
+-2 q_r q_y - 2 q_x q_z &  2 q_r q_x - 2 q_y q_z &  2 q_x^2 + 2 q_y^2 - 1 & ~
 \\
 \end{array}\right) 
 \end{eqnarray}
 
+\noindent with:
+
+\begin{eqnarray}
+\frac{ \partial \mathbf{f_{qrir}}( \mathbf{a}, \mathbf{p} )}{\partial \mathbf{p}} 
+&=& 
+\left(\begin{array}{cccc} 
+2 q_y \Delta z - 2 q_z \Delta y &                  2 q_y \Delta y + 2 q_z \Delta z & 
+2 q_x \Delta y - 4 q_y \Delta x + 2 qr \Delta z &  2 q_x \Delta z - 2 qr \Delta y - 4 q_z \Delta x 
+\\
+ 2 q_z \Delta x - 2 q_x \Delta z &  2 q_y \Delta x - 4 q_x \Delta y - 2 q_r \Delta z &         
+2 q_x \Delta x + 2 q_z \Delta z &  2 q_r \Delta x - 4 q_z \Delta y + 2 q_y \Delta z
+\\
+ 2 q_x \Delta y - 2 q_y \Delta x &  2 q_z \Delta x + 2 qr \Delta y - 4 q_x \Delta z & 
+2 q_z \Delta y - 2 qr \Delta x - 4 q_y \Delta z &  2 q_x \Delta x + 2 q_y \Delta y
+\\
+\end{array}\right) \nonumber \\
+& ~ & \cdot \frac{\partial (q_r',q_x',q_y',q_z')(q_r,q_x,q_y,q_z)}{\partial q_r,q_x,q_y,q_z}  
+\end{eqnarray}
+
+\noindent where the second term in the product is the Jacobian of the quaternion 
+normalization (see \S \ref{sect:quat:norm}).
+
+
+
 \subsubsection{Implementation in MRPT}
 
+As in the previous case, here we it can be also employed the method 
+\texttt{inverseComposePoint()} which if provided the optional output parameters,
+will return the desired Jacobians:
+
+\begin{lstlisting}
+#include <mrpt/base.h> 
+using namespace mrpt::poses; 
+using namespace mrpt::math; 
+
+CPose3DQuat  q;
+TPoint3D     g, l;
+CMatrixFixedNumeric<double,3,3>  dfi_dpoint;
+CMatrixFixedNumeric<double,3,7>  dfi_dpose;
+q.composePoint(lx,ly,lz,gx,gy,gz,);
+
+...
+q.inverseComposePoint(
+  g.x,g.y,g.z, // Input  (global coords) 
+  l.x,l.y,l.z, // Output (local coords)
+  &dfi_dpoint, // 3x3 Jacobian
+  &dfi_dpose   // 3x7 Jacobian
+  );
+\end{lstlisting}
 
 
 
 \section{With poses as matrices}
+
+Given a $4\times 4$ transformation matrix $\mathbf{M}$ corresponding to a 6D pose 
+$\mathbf{p}$ and a point in global coordinates 
+$\mathbf{a} = [a_x ~ a_y ~ a_z]$, the corresponding point in local coordinates
+$\mathbf{a'} = [a'_x ~ a'_y ~ a'_z]$ is given by:
+
+\begin{eqnarray}
+\mathbf{a'} &=& \mathbf{a} \ominus \mathbf{p} \nonumber \\
+\left(\begin{array}{c}
+ a'_x \\ a'_y \\ a'_z \\ 1
+\end{array}\right)
+&=&
+\mathbf{M}^{-1} 
+\left(\begin{array}{c}
+ a_x \\ a_y \\ a_z \\ 1
+\end{array}\right)
+\end{eqnarray}
+
+\noindent where homogeneous coordinates (the column matrices) have been used for the 3D points.
+An efficient way to compute the inverse of a homogeneous matrix is 
+described in \S \ref{sect:inverse:mat}
 
 
 \section{Relation with pose-point direct composition}
@@ -1069,7 +1258,7 @@ such as composing can be simply
 writen down as:
 
 \begin{lstlisting}
-#include <mrpt/core.h> 
+#include <mrpt/base.h> 
 using namespace mrpt::poses; 
 
 CPose3D  p1,p2; 
@@ -1091,7 +1280,7 @@ XXX
 The composition is easily performed via an overloaded ``+'' operator, as can be seen in this code:
 
 \begin{lstlisting}
-#include <mrpt/core.h> 
+#include <mrpt/base.h> 
 using namespace mrpt::poses; 
 
 CPose3DPDFGaussian p6a( p6_mean_a, p6_cov_a ); 
@@ -1145,7 +1334,7 @@ of the ``\texttt{+}'' operator, such as composing can be simply
 writen down as:
 
 \begin{lstlisting}
-#include <mrpt/core.h> 
+#include <mrpt/base.h> 
 using namespace mrpt::poses; 
 
 CPose3DQuat  p1,p2; 
@@ -1218,8 +1407,7 @@ The Jacobians of the pose composition function $\mathbf{f_{qc}}(\cdot)$ are give
    & & 				& q_{y1} & q_{z1} & q_{r1} &-q_{x1}  \\
    & & 				& q_{z1} &-q_{y1} & q_{x1} & q_{r1}   
   \end{array}
-\right) 
-\\
+\right)
 \end{eqnarray}
 
 
@@ -1235,7 +1423,7 @@ in \S \ref{sect:quat:norm}.
 The composition is easily performed via an overloaded ``+'' operator, as can be seen in this code:
 
 \begin{lstlisting}
-#include <mrpt/core.h> 
+#include <mrpt/base.h> 
 using namespace mrpt::poses; 
 
 CPose3DQuatPDFGaussian     p7a( p7_mean_a, p7_cov_a ); 
@@ -1268,7 +1456,7 @@ simply as:
 In this case, operate just like with ordinary matrices:
 
 \begin{lstlisting}
-#include <mrpt/core.h> 
+#include <mrpt/base.h> 
 using namespace mrpt::poses; 
 
 CMatrixDouble44  M1, M2;
@@ -1322,8 +1510,6 @@ x^\star \\ y^\star \\ z^\star \\  q^\star_r \\ q^\star_x \\ q^\star_y \\ q^\star
 
 
 
-
-
 \subsubsection{Implementation in MRPT}
 
 
@@ -1336,7 +1522,7 @@ x^\star \\ y^\star \\ z^\star \\  q^\star_r \\ q^\star_x \\ q^\star_y \\ q^\star
 The inverse of a pose distrution in 3D+Quat can be computed simply by:
 
 \begin{lstlisting}
-#include <mrpt/core.h> 
+#include <mrpt/base.h> 
 using namespace mrpt::poses; 
 
 CPose3DQuatPDFGaussian  p1 = ...
@@ -1348,16 +1534,71 @@ CPose3DQuatPDFGaussian  p1_inv = -p1;
 
 % ---------------
 \section{For a transformation matrix}
+\label{sect:inverse:mat}
 
+Notice that the inverse of a homogeneous matrix can be computed very efficiently by 
+simply transposing its $3 \times 3$ rotation part and using the following expressions for the 
+fourth column (3D displacement) values:
+
+\begin{eqnarray}
+M^{-1} &=& 
+\left(
+  \begin{array}{ccc|c}
+   i_1 & j_1 & k_1 & x \\
+   i_2 & j_2 & k_2 & y \\
+   i_3 & j_3 & k_3 & z \\
+   0 & 0 & 0 & 1
+  \end{array}
+\right) ^{-1} 
+= 
+\left(
+  \begin{array}{ccc|c}
+   i_1 & i_2 & i_3   & -\mathbf{i} \cdot \mathbf{t} \\ 
+   j_1 & j_2 & j_3   & -\mathbf{j} \cdot \mathbf{t} \\ 
+   k_1 & k_2 & k_3   & -\mathbf{k} \cdot \mathbf{t} \\ 
+   0 & 0 & 0 & 1
+  \end{array}
+\right)
+\end{eqnarray}
+
+\noindent where the vectors $\mathbf{i}$, $\mathbf{j}$
+and $\mathbf{k}$ are the orthogonal bases of the reference frame 
+(the columns of the rotation matrix), 
+$\mathbf{t}=[x ~ y ~ z]^\top$ is the translation vector and $\mathbf{a} \cdot \mathbf{b}$
+stands for the dot product.
 
 
 %% ================================================
 \chapter{Normalization of a quaternion}
 \label{sect:quat:norm}
 
+In many situations, the quaternion part of a 3D+Quat 7D representation 
+of a pose may drift away of being unitary. 
+This is specially true if each component of the quaternion are estimated 
+independently, such as within a Kalman filter. 
+
+The normalization function is simply:
 
 \begin{equation}
-\frac{\partial (q_r',q_x',q_y',q_z')(q_r,q_x,q_y,q_z)}{\partial q_r,q_,q_y,q_z}  
+\mathbf{q'}(\mathbf{q}) = 
+\left(
+\begin{array}{c}
+ q_r' \\ q_x'\\ q_y'\\ q_z'
+\end{array}
+\right)
+= 
+\frac{1}{(q_r^2+q_x^2+q_y^2+q_z^2)^{1/2}}
+\left(
+\begin{array}{c}
+ q_r \\ q_x\\ q_y\\ q_z
+\end{array}
+\right)
+\end{equation}
+
+\noindent and its $4 \times 4$ Jacobian is given by:
+
+\begin{equation}
+\frac{\partial \mathbf{q'}(q_r,q_x,q_y,q_z)}{\partial q_r,q_x,q_y,q_z}  
 =
 \frac{1}{(q_r^2+q_x^2+q_y^2+q_z^2)^{3/2}}
 \left( 
