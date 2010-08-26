@@ -59,8 +59,8 @@
 \author{\\\\~\\Technical Report\\~\\
 of M\'alaga, Spain}
 
-\TRInfo{6D poses as Euler angles, transformation matrices and quaternions: equivalences, compositions and uncertainty}
-{Jose-Luis Blanco\\jlblanco@ctima.uma.es}
+\TRInfo{Parameterizations of $\mathbf{SE}(3)$ transformations: equivalences, compositions and uncertainty}
+{Jose-Luis Blanco\\ \texttt{joseluisblancoc@gmail.com}}
 {MAPIR Group}{}{012010}{Date: \ddmmyyyydate \today }
 \PageStyle
 
@@ -68,10 +68,11 @@ of M\'alaga, Spain}
 \pagestyle{plain}
 
 \begin{abstract}
-Any rigid transformation in the 3D Euclidean space 
-comprises a 3D translation and an arbitrary 3D rotation.
+An arbitrary rigid transformation in $\mathbf{SE}(3)$ can be separated into two parts, namely, 
+a translation and a rigid rotation.
 This technical report reviews, under a unifying viewpoint, three common alternatives to representing the 
-rotation part: a set of three (yaw-pitch-roll) Euler angles, a rotation matrix and a quaternion.
+rotation part: sets of three (yaw-pitch-roll) Euler angles, orthogonal rotation matrices from 
+$\mathbf{SO}(3)$ and quaternions.
 It will be described: 
 (i) the equivalence between these representations and the formulas for transforming one to each other
 (in all cases considering the translational and rotational parts as a whole),
@@ -82,24 +83,30 @@ including subtle details as the need for applying the normalization Jacobians
 when dealing with quaternions.
 The text also reflects which MRPT C++ library\footnote{\texttt{http://www.mrpt.org/}} functions implement
 each of the described algorithms. 
-All those implementations have been thoroughly validated by means 
-of several unit tests.
+All the implementations have been thoroughly validated by means of unit testing.
 \end{abstract}
 
 \tableofcontents
 
 
 %% ================================================
-\chapter{Poses in 3-dimensional space}
+\chapter{Rigid transformations in 3D}
 
 
 \section{Basic definitions}
 \label{sect:basic}
 
-A \emph{pose} in 3D can be described by means of a 3D translation plus an orthonormal vector base, 
-or coordinates frame, relative to any other arbitrary coordinate reference system. 
+Mathematically, the \emph{special orthogonal} group $\mathbf{SO}(3)$ comprises all possible pure 
+(rigid) rotations in Euclidean 3D space. The members of this group are $3 \times 3$ orthogonal matrices
+which define rotations. Taking also into account translations leads to the \emph{special Euclidean} 
+group $\mathbf{SE}(3)$ \cite{eade2008phd,gallier2001geometric}. 
+
+A transformation from $\mathbf{SE}(3)$, or \emph{pose}, can be described by means of a 3D translation plus an orthonormal vector base, 
+or coordinate frame, relative to any other arbitrary coordinate reference system. 
 The overall number of degrees of freedom is six, hence they can be also referred 
 to as \emph{6D poses}.
+
+
 
 
 The Figure~\ref{fig:1} illustrates this definition, where the pose $\mathbf{p}$ is represented
@@ -294,8 +301,8 @@ matrix $\mathbf{P}$ with the following structure:
 \right)
 \end{equation}
 
-\noindent where the $3 \times 3$ matrix $\mathbf{R}$ is 
-a rotation matrix\footnote{Also called direction cosine matrix (DCM).} 
+\noindent where the $3 \times 3$ orthogonal matrix $\mathbf{R} \in \mathbf{SO}(3)$ 
+is the \emph{rotation matrix}\footnote{Also called direction cosine matrix (DCM).} 
 (the only part of $\mathbf{P}$ related to 
 the 3D rotation) and the vector $(x,y,z)$ represents the translational part of the 6D pose. 
 For such a matrix to be applicable to 3D points, they must be first represented in 
@@ -845,9 +852,34 @@ as illustrated in Figure~\ref{fig:1}, that is, $\mathbf{a} = \mathbf{p} \oplus \
 
 \section{With poses in 3D+YPR form}
 
+\subsection{Composition}
+
 In this case the solution is to firstly compute the $4 \times 4$ 
 transformation matrix of the pose using Eq.~\ref{eq:mat_ypr}, then proceed 
 as described in \S \ref{sect:comp_point:mat}.
+
+
+\subsubsection{Implementation in MRPT}
+
+A pose-point composition can be evaluated by means of:
+
+\begin{lstlisting}
+#include <mrpt/base.h> 
+using namespace mrpt::poses; 
+using namespace mrpt::math; 
+
+CPose3D   q;
+TPoint3D  in_p, out_p;
+...
+q.composePoint(in_p, out_p);
+\end{lstlisting}
+
+
+\subsection{Uncertainty}
+
+\cite{sibley2009rba}
+
+XXX
 
 
 \section{With poses in 3D+Quat form}
@@ -1042,6 +1074,7 @@ relative to $\mathbf{p_7}$, that is, $\mathbf{a'} = \mathbf{a} \ominus \mathbf{p
 
 
 \begin{eqnarray}
+\label{eq:fqri}
 \mathbf{a'} = \mathbf{f_{qri}}( \mathbf{a}, \mathbf{p_7} ) =
 \left(\begin{array}{c}
 %-
@@ -1106,6 +1139,7 @@ $\Delta x = (a_x - x)$, $\Delta y = (a_x - x)$ and $\Delta z = (a_z - z)$, we ca
 write the Jacobian with respect to the pose as:
 
 \begin{eqnarray}
+\label{eq:df_qri_p}
 \frac{ \partial \mathbf{f_{qri}}( \mathbf{a}, \mathbf{p} )}{\partial \mathbf{p}} = 
 \left(\begin{array}{ccc|c} 
 2 q_y^2 + 2 q_z^2 - 1 &   -2 q_r q_z - 2 q_x q_y &  2 q_r q_y - 2 q_x q_z &  ~ 
@@ -1230,7 +1264,7 @@ Note that the inverse of a pose is a topic discussed later on in \S \ref{sect:in
 
 
 %% ================================================
-\chapter{Composing two poses}
+\chapter{Composition of two poses}
 
 Next sections are devoted to computing the composed pose $\mathbf{p}$ resulting
 from a concatenation of two 6D poses $\mathbf{p_1}$ and $\mathbf{p_2}$, 
@@ -1474,6 +1508,30 @@ CMatrixDouble44  M = M1 * M2;  // Matrix multiplication
 % ---------------
 \section{For a 3D+YPR pose}
 
+\subsection{Inverse transformation}
+
+In this case it's preferred to transform the 3D pose to either a 3D+Quat or a matrix form, 
+invert the pose in that form (as described in the next sections) and convert back to 3D+YPR.
+
+
+\subsubsection{Implementation in MRPT}
+
+Obtaining the inverse of a 6D-pose of type \texttt{CPose3D} is implemented 
+with the unary \texttt{-} operator:
+
+\begin{lstlisting}
+#include <mrpt/base.h> 
+using namespace mrpt::poses; 
+
+CPose3D   q;
+CPose3D   q_inv = -q;
+\end{lstlisting}
+
+
+\subsection{Uncertainty}
+
+
+
 
 % ---------------
 \section{For a 3D+Quat pose}
@@ -1506,14 +1564,68 @@ x^\star \\ y^\star \\ z^\star \\  q^\star_r \\ q^\star_x \\ q^\star_y \\ q^\star
 \right)
 \end{eqnarray}
 
-\noindent with:
+\noindent where $\mathbf{f_{qri}}(\mathbf{a},\mathbf{p})$  was defined in Eq.~(\ref{eq:fqri}).
 
 
 
 \subsubsection{Implementation in MRPT}
 
+Obtaining the inverse of a 7D-pose of type \texttt{CPose3DQuat} is implemented 
+with the unary \texttt{-} operator:
+
+\begin{lstlisting}
+#include <mrpt/base.h> 
+using namespace mrpt::poses; 
+
+CPose3DQuat   q;
+CPose3DQuat   q_inv = -q;
+\end{lstlisting}
+
 
 \subsection{Uncertainty}
+
+Let $\mathcal{N}(\mathbf{\bar{q}}, cov(\mathbf{q}))$ represent
+the Gaussian distributions of a 7D-pose $\mathbf{q}$ in 3D+Quat form. 
+Then, the probability distribution of the inverse pose 
+$\mathbf{q_i} = \ominus \mathbf{q_i} $ can be approximated via 
+linear error propagation by considering a mean value of:
+
+\begin{eqnarray}
+\mathbf{\bar{q}_i} = \ominus \mathbf{\bar{q}}
+\end{eqnarray}
+
+\noindent and a covariance matrix:
+
+\begin{eqnarray}
+cov(\mathbf{q_i}) &=& 
+\frac{\partial \mathbf{f_{qi}} }{\partial \mathbf{q}}
+cov(\mathbf{q})
+\frac{\partial \mathbf{f_{qi}} }{\partial \mathbf{q}} ^\top
+\end{eqnarray}
+
+\noindent with the Jacobian:
+
+\begin{eqnarray}
+\frac{\partial \mathbf{f_{qi}} }{\partial \mathbf{q}}
+= 
+\left(
+\begin{array}{c}
+\frac{\partial \mathbf{f_{qri}}([0~0~0]^\top,\mathbf{q}) }{\partial \mathbf{q}} \\ 
+\hline 
+ \begin{array}{c|c}
+   \mathbf{0}_{4 \times 4} & 
+   \begin{array}{rrrr}
+    1 & 0 & 0 & 0 \\
+    0 & -1 & 0 & 0 \\
+    0 & 0 & -1 & 0 \\
+    0 & 0 & 0 & -1 
+   \end{array}
+ \end{array}
+\end{array}
+\right)
+\end{eqnarray}
+
+\noindent where the sub-Jacobian above was already defined in Eq.(\ref{eq:df_qri_p}).
 
 
 
@@ -1526,7 +1638,6 @@ The inverse of a pose distrution in 3D+Quat can be computed simply by:
 using namespace mrpt::poses; 
 
 CPose3DQuatPDFGaussian  p1 = ...
-
 CPose3DQuatPDFGaussian  p1_inv = -p1;
 \end{lstlisting}
 
@@ -1537,16 +1648,25 @@ CPose3DQuatPDFGaussian  p1_inv = -p1;
 \label{sect:inverse:mat}
 
 Notice that the inverse of a homogeneous matrix can be computed very efficiently by 
-simply transposing its $3 \times 3$ rotation part and using the following expressions for the 
-fourth column (3D displacement) values:
+simply transposing its $3 \times 3$ rotation part (which actually requires \emph{just 3 swaps}) 
+and using the following expressions for the fourth column (3D displacement) values:
 
 \begin{eqnarray}
 M^{-1} &=& 
 \left(
   \begin{array}{ccc|c}
+   \mathbf{i} & \mathbf{j} & \mathbf{k} & \mathbf{t} \\
+\hline
+   0 & 0 & 0 & 1
+  \end{array}
+\right) ^{-1} 
+= 
+\left(
+  \begin{array}{ccc|c}
    i_1 & j_1 & k_1 & x \\
    i_2 & j_2 & k_2 & y \\
    i_3 & j_3 & k_3 & z \\
+\hline
    0 & 0 & 0 & 1
   \end{array}
 \right) ^{-1} 
@@ -1556,16 +1676,25 @@ M^{-1} &=&
    i_1 & i_2 & i_3   & -\mathbf{i} \cdot \mathbf{t} \\ 
    j_1 & j_2 & j_3   & -\mathbf{j} \cdot \mathbf{t} \\ 
    k_1 & k_2 & k_3   & -\mathbf{k} \cdot \mathbf{t} \\ 
+\hline
    0 & 0 & 0 & 1
   \end{array}
 \right)
 \end{eqnarray}
 
-\noindent where the vectors $\mathbf{i}$, $\mathbf{j}$
-and $\mathbf{k}$ are the orthogonal bases of the reference frame 
-(the columns of the rotation matrix), 
-$\mathbf{t}=[x ~ y ~ z]^\top$ is the translation vector and $\mathbf{a} \cdot \mathbf{b}$
-stands for the dot product.
+\noindent where $\mathbf{a} \cdot \mathbf{b}$ stands for the dot product.
+
+
+%% ================================================
+\chapter{Lie algebra of $\mathbf{SE}(3)$}
+\label{sect:se3_lie}
+
+Since $\mathbf{SE}(3)$ is a Lie group, there exists a logarithm function that maps a group
+element into its tangent-space 6D vector, with the inverse operation being the exponential map 
+\cite{eade2008phd,gallier2001geometric}.
+
+XXX
+
 
 
 %% ================================================
