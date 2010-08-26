@@ -5,10 +5,11 @@
 \usepackage{array}
 \usepackage{float}
 \usepackage{subfigure}
-
 \usepackage{color}
 \usepackage{listings}
 \usepackage[utf8x]{inputenc}
+
+\usepackage{amsfonts}  % For \mathbb
 
 \usepackage{fancyhdr}               % Cabeceras
 %\usepackage[dvips]{graphicx}
@@ -86,6 +87,18 @@ each of the described algorithms.
 All the implementations have been thoroughly validated by means of unit testing.
 \end{abstract}
 
+
+\newpage
+
+
+\textbf{History of document versions:}
+\begin{itemize}
+ \item Version 1: First version (Released 27/Aug/2010).
+\end{itemize}
+
+
+\newpage
+
 \tableofcontents
 
 
@@ -96,21 +109,21 @@ All the implementations have been thoroughly validated by means of unit testing.
 \section{Basic definitions}
 \label{sect:basic}
 
-Mathematically, the \emph{special orthogonal} group $\mathbf{SO}(3)$ comprises all possible pure 
-(rigid) rotations in Euclidean 3D space. The members of this group are $3 \times 3$ orthogonal matrices
-which define rotations. Taking also into account translations leads to the \emph{special Euclidean} 
-group $\mathbf{SE}(3)$ \cite{eade2008phd,gallier2001geometric}. 
+Mathematically, the \emph{special orthogonal} group $\mathbf{SO}(3)$ comprises all possible 
+pure (rigid) rotations in $\mathbb{R}^3$ (the Euclidean 3D space). 
+The members of this group are $3 \times 3$ orthogonal matrices
+which define rotations. Accounting for translations as well leads us 
+to the \emph{special Euclidean} 
+Lie group $\mathbf{SE}(3)$, the group of all possible linear isometries (``rigid`` transformations)
+that $\mathbb{R}^3$ can undergo \cite{eade2008phd,gallier2001geometric}. 
 
-A transformation from $\mathbf{SE}(3)$, or \emph{pose}, can be described by means of a 3D translation plus an orthonormal vector base, 
+In this report we refer to $\mathbf{SE}(3)$ transformations as \emph{poses}.
+A pose can be described by means of a 3D translation plus an orthonormal vector base, 
 or coordinate frame, relative to any other arbitrary coordinate reference system. 
 The overall number of degrees of freedom is six, hence they can be also referred 
 to as \emph{6D poses}.
-
-
-
-
 The Figure~\ref{fig:1} illustrates this definition, where the pose $\mathbf{p}$ is represented
-by the axes $\{\mathbf{X}',\mathbf{Y}',\mathbf{Z}' \}$ with respect to the reference frame 
+by the axes $\{\mathbf{X}',\mathbf{Y}',\mathbf{Z}' \}$ with respect to a reference frame 
 $\{\mathbf{X},\mathbf{Y},\mathbf{Z} \}$.
 
 
@@ -164,8 +177,7 @@ relationship expressed as $\mathbf{p2} = \mathbf{p} \ominus \mathbf{p1}$.
 
 Up to this point, poses, pose/point and pose/pose compositions have been described 
 under a purely geometrical point of view. 
-The next section introduces some of the 
-most commonly employed mathematical representations.
+The next section introduces some of the most commonly employed parameterizations.
 
 
 \newpage
@@ -282,8 +294,55 @@ CPose3DQuat   p(1.0 /* x */,2.0 /* y */,3.0 /* z */,
 \end{lstlisting}
 
 
-\newpage
+\subsubsection{Normalization of a quaternion}
+\label{sect:quat:norm}
 
+In many situations, the quaternion part of a 3D+Quat 7D representation 
+of a pose may drift away of being unitary. 
+This is specially true if each component of the quaternion is estimated 
+independently, such as within a Kalman filter or 
+any other Gauss-Newton iterative optimizer.
+
+The normalization function is simply:
+
+\begin{equation}
+\mathbf{q'}(\mathbf{q}) 
+= 
+\left(
+\begin{array}{c}
+ q_r' \\ q_x'\\ q_y'\\ q_z'
+\end{array}
+\right)
+= 
+\frac{\mathbf{q}}{|\mathbf{q}|} 
+= 
+\frac{1}{(q_r^2+q_x^2+q_y^2+q_z^2)^{1/2}}
+\left(
+\begin{array}{c}
+ q_r \\ q_x\\ q_y\\ q_z
+\end{array}
+\right)
+\end{equation}
+
+\noindent and its $4 \times 4$ Jacobian is given by:
+
+\begin{equation}
+\frac{\partial \mathbf{q'}(q_r,q_x,q_y,q_z)}{\partial q_r,q_x,q_y,q_z}  
+=
+\frac{1}{(q_r^2+q_x^2+q_y^2+q_z^2)^{3/2}}
+\left( 
+\begin{array}{cccc}
+q_x^2 +q_y^2+q_z^2  & -q_r q_x   & -q_r q_y  & -q_r q_z  \\
+-q_x q_r & q_r^2 +q_y^2+q_z^2 & -q_x q_y & - q_x q_z \\
+-q_y q_r & -q_y q_x &  q_r^2 +q_x^2 +q_z^2 & -q_y q_z \\
+-q_z q_r  & -q_z q_x & -q_z q_y  &  q_r^2+q_x^2+q_y^2
+\end{array}
+\right)
+\end{equation}
+
+
+%\newpage
+%
 
 \subsection{$4 \times 4$ transformation matrices}
 
@@ -321,22 +380,29 @@ using namespace mrpt::math;
 CMatrixDouble44  P;
 \end{lstlisting}
 
+Note however that the 3D+YPR type \texttt{CPose3D} also holds a cached matrix representation 
+of the transformation.
+
 
 
 %% ================================================
 
 \chapter{Equivalences between representations}
 
-In all the subsequent sections the focus will be on the transformation of the rotational part of 6D poses, since
-the 3D translational part between all of them are exactly equivalent. 
+In all the subsequent sections the focus will be on the transformation of the rotational 
+part of 6D poses, since the 3D translational part is always a represented as a vector in
+all the parameterizations.
 
-Another point to be discussed here is how these transformations can be applied to the uncertainty 
-of any of the poses, 
-assuming it is modeled as a Gaussian distribution, by means of first 
-order linearization of the transformation functions. 
+Another point to be discussed here is how the transformation between different 
+parameterizations affects the \emph{uncertainty} for the case of probability distributions over poses. 
+Assuming a multivariate Gaussian model, first order 
+linearization of the transforming functions
+is proposed as a simple and effective approximation. 
 Note that an alternative to this method is using the scaled unscented 
 transform (SUT) \cite{julier2002sut}, which may give more exact results for 
-large levels of the uncertainty but typically requires more computation time.
+large levels of the uncertainty but typically requires more computation time 
+and can cause problems for semidefinite positive (in contrast to definite positive) 
+covariance matrices.
 
 \section{3D+YPR to 3D+Quat }
 \label{sect:ypr2quat}
@@ -372,7 +438,6 @@ using namespace mrpt::poses;
 
 CPose3D  p6;
 ...
-
 CPose3DQuat   p7 = p6;  // Transparent conversion
 \end{lstlisting}
 
@@ -436,7 +501,6 @@ using namespace mrpt::poses;
 
 CPose3DPDFGaussian     p6( p6_mean, p6_cov ); 
 ...
-
 CPose3DQuatPDFGaussian p7 = CPose3DQuatPDFGaussian(p6);  // Explicit constructor
 \end{lstlisting}
 
@@ -450,7 +514,7 @@ As mentioned in \S \ref{sect:ypr:gimbal}, the existence of degenerate cases in
 the yaw-pitch-roll representation forces us to consider special cases in many formulas, 
 as it happens in this case when a quaternion must be converted into these angles.
 
-Firstly, assuming a normalized quaternion, we define a discriminant value $\Delta$ to be:
+Firstly, assuming a normalized quaternion, we define the \emph{discriminant} $\Delta$ as:
 
 \begin{equation}
  \Delta = q_r q_y - q_x q_z
@@ -505,7 +569,6 @@ using namespace mrpt::poses;
 
 CPose3DQuat   p7;
 ...
-
 CPose3D       p6 = p7;  // Transparent transformation
 \end{lstlisting}
 
@@ -565,7 +628,6 @@ CPose3DQuat            p7_mean = ...
 CMatrixDouble77        p7_cov  = ...
 CPose3DQuatPDFGaussian p7(p7_mean,p7_cov);
 ...
-
 CPose3DPDFGaussian     p6 = CPose3DPDFGaussian(p7);  // Explicit constructor
 \end{lstlisting}
 
@@ -637,13 +699,13 @@ we obtain the complete rotation matrix:
 \right) \nonumber
 \end{eqnarray}
 
-A transformation matrix is always well-defined and does not suffer of degenerate cases, but its large
+A transformation matrix $\mathbf{P}$ is always well-defined and does not suffer of degenerate cases, but its large
 storage requirements ($4\times 4=16$ elements) makes more advisable to use other representations such 
 as 3D+YPR (3+3=6 elements) or 3D+Quat (3+4=7 elements) in many situations. 
 An important exception is the case when computation time is critical and the most common operation 
 is composing (or inverse composing) a pose with a 3D point, where matrices require about half the 
 computation time than the other methods. On the other hand, composing a pose with another pose is 
-a much more efficient operation to carry out with a 3D+Quat representation. 
+a slightly more efficient operation to carry out with a 3D+Quat representation. 
 
 In any case, when dealing with uncertainties, transformation matrices are not a 
 reasonable choice due to the 
@@ -761,8 +823,8 @@ Firstly, pitch is obtained from:
   \chi &=& \mathrm{atan2} \left( -p_{31} , \sqrt{ p_{11}^2 + p_{21}^2 } \right) 
 \end{eqnarray}
 
-Next, depending on whether we are in a degenerate ($|\chi|=90^\circ$) or 
-non-degenerate case ($|\chi| \neq 90^\circ$), the following expressions must
+Next, depending on whether we are in a degenerate case ($|\chi|=90^\circ$) or 
+not ($|\chi| \neq 90^\circ$), the following expressions must
 be applied\footnote{At this point, special thanks go to 
 Pablo Moreno Olalla for his work deriving robust expressions from Eq.~(\ref{eq:mat_ypr}) 
 that work for all the special cases.}:
@@ -846,9 +908,9 @@ CPose3DQuat      p = CPose3DQuat(M);
 %% ================================================
 \chapter{Composing a pose and a point}
 
-In the next sections we will review how to compute the global coordinates of a point $\mathbf{a}$
+This chapter reviews how to compute the global coordinates of a point $\mathbf{a}$
 given a pose $\mathbf{p}$ and the point coordinates relative to that coordinate system $\mathbf{a'}$,
-as illustrated in Figure~\ref{fig:1}, that is, $\mathbf{a} = \mathbf{p} \oplus \mathbf{a'}$.
+as illustrated in Figure~\ref{fig:1}, that is, the pose chaining $\mathbf{a} = \mathbf{p} \oplus \mathbf{a'}$.
 
 \section{With poses in 3D+YPR form}
 
@@ -882,16 +944,33 @@ q.composePoint(in_p, out_p);
 XXX
 
 
+\subsubsection{Implementation in MRPT}
+
+There is not a direct method to implement a pose-point composition with uncertainty, 
+but the two required Jacobians can be obtained from the method \texttt{composePoint()}:
+
+\begin{lstlisting}
+#include <mrpt/base.h> 
+using namespace mrpt::poses; 
+using namespace mrpt::math; 
+
+CPose3D  q;
+CMatrixFixedNumeric<double,3,3>  df_dpoint;
+CMatrixFixedNumeric<double,3,6>  df_dpose;
+q.composePoint(lx,ly,lz,gx,gy,gz, &df_dpoint, &df_dpose);
+\end{lstlisting}
+
+
+
 \section{With poses in 3D+Quat form}
 
 \subsection{Composition}
 
 Given a pose described as $\mathbf{p_7} = [x ~ y ~ z ~  q_r ~ q_x ~ q_y ~ q_z ] ^ \top$, 
-we are interested in the coordinates of $\mathbf{a}={a_x ~ a_y ~ a_z}$ such as
+we are interested in the coordinates of $\mathbf{a}=[a_x ~ a_y ~ a_z]^\top$ such as
 $\mathbf{a} = \mathbf{p_7} \oplus \mathbf{a'}$ for some known input point 
-$\mathbf{a'} = [a'_x ~ a'_y ~ a'_z]$. 
-
-Then, the solution is given by:
+$\mathbf{a'} = [a'_x ~ a'_y ~ a'_z]^\top$. 
+The solution is given by:
 
 \begin{equation}
 \mathbf{a} = \mathbf{f_{qr}} (\mathbf{p},\mathbf{a'})
@@ -1009,7 +1088,7 @@ The other Jacobian is given by:
 \subsubsection{Implementation in MRPT}
 
 There is not a direct method to implement a pose-point composition with uncertainty, 
-but the method ``composePoint()'' returns the two Jacobians needed for its computation:
+but the two required Jacobians can be obtained from the method \texttt{composePoint()}:
 
 \begin{lstlisting}
 #include <mrpt/base.h> 
@@ -1059,8 +1138,35 @@ as illustrated in Figure~\ref{fig:1}, that is, $\mathbf{a'} = \mathbf{a} \ominus
 
 \section{With poses in 3D+YPR form}
 
-In this case it's preferred to transform the 3D pose to either a 3D+Quat or a matrix form, then
-perform the transformation as described in the following sections.
+\subsection{Inverse transformation}
+
+The relative coordinates of a point with respect to a pose in this parameterization can be computed
+by first obtaining the matrix form of the pose \S\ref{sect:ypr2mat}, then using it as described in \S\ref{sect:inv_comp_mat}.
+
+
+
+\subsubsection{Implementation in MRPT}
+
+Given a 6D-pose as an object of type \texttt{CPose3D}, one can invoke its method 
+\texttt{inverseComposePoint()} which, in one of its signatures, reads:
+
+\begin{lstlisting}
+#include <mrpt/base.h> 
+using namespace mrpt::poses; 
+using namespace mrpt::math; 
+
+CPose3D    q;
+TPoint3D   in_p, out_p;
+...
+q.inverseComposePoint(in_p, out_p);
+\end{lstlisting}
+
+
+\subsection{Uncertainty}
+
+In this case it's preferred to transform the 3D pose to a 3D+Quat, then
+perform the transformation as described in the following section.
+
 
 
 \section{With poses in 3D+Quat form}
@@ -1191,8 +1297,6 @@ CPose3DQuat  q;
 TPoint3D     g, l;
 CMatrixFixedNumeric<double,3,3>  dfi_dpoint;
 CMatrixFixedNumeric<double,3,7>  dfi_dpose;
-q.composePoint(lx,ly,lz,gx,gy,gz,);
-
 ...
 q.inverseComposePoint(
   g.x,g.y,g.z, // Input  (global coords) 
@@ -1205,6 +1309,7 @@ q.inverseComposePoint(
 
 
 \section{With poses as matrices}
+\label{sect:inv_comp_mat}
 
 Given a $4\times 4$ transformation matrix $\mathbf{M}$ corresponding to a 6D pose 
 $\mathbf{p}$ and a point in global coordinates 
@@ -1259,8 +1364,8 @@ and using the matrix form, we can proceed as follows:
 \noindent where $(\ominus \mathbf{p})$ stands for the inverse of a pose $\mathbf{p}$. 
 Thus, the result is that any inverse pose composition can be transformed into a normal 
 pose composition, by switching the order of the two arguments
-($\mathbf{a}$ and $\mathbf{p}$ in this case) and inverting the second one.
-Note that the inverse of a pose is a topic discussed later on in \S \ref{sect:inverse}.
+($\mathbf{a}$ and $\mathbf{p}$ in this case) and inverting the latter.
+Note that the inverse of a pose is a topic discussed in \S \ref{sect:inverse}.
 
 
 %% ================================================
@@ -1418,12 +1523,14 @@ The Jacobians of the pose composition function $\mathbf{f_{qc}}(\cdot)$ are give
 \right|_{7 \times 7} 
 = 
 \left(
+  \begin{array}{c}
+     \left. \frac{\partial \mathbf{f_{qr}} (\mathbf{p_1}, [ x_2 ~ y_2 ~ z_2]^\top ) }{\partial \mathbf{p_1}} \right|_{3\times 7} \\ \hline
   \begin{array}{ccccccc}
-     & & \left. \frac{\partial \mathbf{f_{qr}} (\mathbf{p_1}, [ x_2 ~ y_2 ~ z_2]^\top ) }{\partial \mathbf{p_1}} \right|_{3\times 7}   & &  \\ \hline
     &  &  			& q_{r2} &-q_{x2} &-q_{y2} &-q_{z2}  \\
     & & \mathbf{0}_{4\times 3}  	& q_{x2} & q_{r2} & q_{z2} &-q_{y2}  \\
     & &  			& q_{y2} &-q_{z2} & q_{r2} & q_{x2}  \\
     & &  			& q_{z2} & q_{y2} &-q_{x2} & q_{r2}   
+  \end{array}
   \end{array}
 \right) 
 \\
@@ -1454,7 +1561,7 @@ in \S \ref{sect:quat:norm}.
 
 \subsubsection{Implementation in MRPT}
 
-The composition is easily performed via an overloaded ``+'' operator, as can be seen in this code:
+The composition is easily performed via an overloaded ``+'' operator:
 
 \begin{lstlisting}
 #include <mrpt/base.h> 
@@ -1504,11 +1611,16 @@ CMatrixDouble44  M = M1 * M2;  // Matrix multiplication
 \chapter{Inverse of a pose}
 \label{sect:inverse}
 
+Given a pose $\mathbf{p}$, we define its \emph{inverse} 
+(denoted as $\ominus \mathbf{p}$) 
+as that pose that, composed with the former, gives the null element 
+in $\mathbf{SE}(3)$. 
+In practice, it is useful to visualize the inverse of a pose as 
+how the origin of coordinates ''is seen'', from that pose.
+
 
 % ---------------
 \section{For a 3D+YPR pose}
-
-\subsection{Inverse transformation}
 
 In this case it's preferred to transform the 3D pose to either a 3D+Quat or a matrix form, 
 invert the pose in that form (as described in the next sections) and convert back to 3D+YPR.
@@ -1517,7 +1629,8 @@ invert the pose in that form (as described in the next sections) and convert bac
 \subsubsection{Implementation in MRPT}
 
 Obtaining the inverse of a 6D-pose of type \texttt{CPose3D} is implemented 
-with the unary \texttt{-} operator:
+with the unary \texttt{-} operator which internally uses the cached $4 \times 4$ 
+transformation matrix within \texttt{CPose3D} objects:
 
 \begin{lstlisting}
 #include <mrpt/base.h> 
@@ -1526,9 +1639,6 @@ using namespace mrpt::poses;
 CPose3D   q;
 CPose3D   q_inv = -q;
 \end{lstlisting}
-
-
-\subsection{Uncertainty}
 
 
 
@@ -1625,13 +1735,13 @@ cov(\mathbf{q})
 \right)
 \end{eqnarray}
 
-\noindent where the sub-Jacobian above was already defined in Eq.(\ref{eq:df_qri_p}).
+\noindent where the sub-Jacobian on the top has been already defined in Eq.(\ref{eq:df_qri_p}).
 
 
 
 \subsubsection{Implementation in MRPT}
 
-The inverse of a pose distrution in 3D+Quat can be computed simply by:
+The Gaussian distrution of an inverse 3D+Quat pose can be computed simply by:
 
 \begin{lstlisting}
 #include <mrpt/base.h> 
@@ -1647,9 +1757,14 @@ CPose3DQuatPDFGaussian  p1_inv = -p1;
 \section{For a transformation matrix}
 \label{sect:inverse:mat}
 
-Notice that the inverse of a homogeneous matrix can be computed very efficiently by 
+From the description of inverse pose at the begining of this chapter, and given
+that the null element in $\mathbf{SE}(3)$ in matrix form is the identity $\mathbf{I}_4$, 
+it's clear that the inverse of pose defined by a matrix $\mathbf{M}$ is simply $\mathbf{M}^{-1}$, 
+since $\mathbf{M}^{-1}\mathbf{M}=\mathbf{I}$.
+
+The inverse of a homogeneous matrix can be computed very efficiently by 
 simply transposing its $3 \times 3$ rotation part (which actually requires \emph{just 3 swaps}) 
-and using the following expressions for the fourth column (3D displacement) values:
+and using the following expressions for the fourth column (the translation):
 
 \begin{eqnarray}
 M^{-1} &=& 
@@ -1695,50 +1810,6 @@ element into its tangent-space 6D vector, with the inverse operation being the e
 
 XXX
 
-
-
-%% ================================================
-\chapter{Normalization of a quaternion}
-\label{sect:quat:norm}
-
-In many situations, the quaternion part of a 3D+Quat 7D representation 
-of a pose may drift away of being unitary. 
-This is specially true if each component of the quaternion are estimated 
-independently, such as within a Kalman filter. 
-
-The normalization function is simply:
-
-\begin{equation}
-\mathbf{q'}(\mathbf{q}) = 
-\left(
-\begin{array}{c}
- q_r' \\ q_x'\\ q_y'\\ q_z'
-\end{array}
-\right)
-= 
-\frac{1}{(q_r^2+q_x^2+q_y^2+q_z^2)^{1/2}}
-\left(
-\begin{array}{c}
- q_r \\ q_x\\ q_y\\ q_z
-\end{array}
-\right)
-\end{equation}
-
-\noindent and its $4 \times 4$ Jacobian is given by:
-
-\begin{equation}
-\frac{\partial \mathbf{q'}(q_r,q_x,q_y,q_z)}{\partial q_r,q_x,q_y,q_z}  
-=
-\frac{1}{(q_r^2+q_x^2+q_y^2+q_z^2)^{3/2}}
-\left( 
-\begin{array}{cccc}
-q_x^2 +q_y^2+q_z^2  & -q_r q_x   & -q_r q_y()  & -q_r q_z  \\
--q_x q_r & q_r^2 +q_y^2+q_z^2 & -q_x q_y & - q_x q_z \\
--q_y q_r & -q_y q_x &  q_r^2 +q_x^2 +q_z^2 & -q_y q_z \\
--q_z q_r  & -q_z q_x & -q_z q_y  &  q_r^2+q_x^2+q_y^2
-\end{array}
-\right)
-\end{equation}
 
 
 %% ---------------------------------------------------------------
