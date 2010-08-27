@@ -79,10 +79,10 @@ It will be described:
 (in all cases considering the translational and rotational parts as a whole),
 (ii) how to compose poses in each representation and 
 (iii) how the uncertainty of the poses (when modeled as Gaussian distributions)
-is affected by these transformations and compositions, 
-including subtle details as the need for applying the normalization Jacobians 
-when dealing with quaternions.
-The text also reflects which MRPT C++ library\footnote{\texttt{http://www.mrpt.org/}} functions implement
+is affected by these transformations and compositions.
+Some brief notes are also given about the Jacobians required to implement least-squares optimization
+on manifolds, an very promising approach in recent SLAM literature.
+The text reflects which MRPT C++ library\footnote{\texttt{http://www.mrpt.org/}} functions implement
 each of the described algorithms. 
 All the implementations have been thoroughly validated by means of unit testing.
 \end{abstract}
@@ -110,7 +110,7 @@ All the implementations have been thoroughly validated by means of unit testing.
 \label{sect:basic}
 
 Mathematically, the \emph{special orthogonal} group $\mathbf{SO}(3)$ comprises all possible 
-pure (rigid) rotations in $\mathbb{R}^3$ (the Euclidean 3D space). 
+rigid rotations in $\mathbb{R}^3$ (the Euclidean 3D space). 
 The members of this group are $3 \times 3$ orthogonal matrices
 which define rotations. Accounting for translations as well leads us 
 to the \emph{special Euclidean} 
