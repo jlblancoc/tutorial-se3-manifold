@@ -77,11 +77,11 @@ $\mathbf{SO}(3)$ and quaternions.
 It will be described: 
 (i) the equivalence between these representations and the formulas for transforming one to each other
 (in all cases considering the translational and rotational parts as a whole),
-(ii) how to compose poses in each representation and 
+(ii) how to compose poses with poses and poses with points in each representation and 
 (iii) how the uncertainty of the poses (when modeled as Gaussian distributions)
 is affected by these transformations and compositions.
 Some brief notes are also given about the Jacobians required to implement least-squares optimization
-on manifolds, an very promising approach in recent SLAM literature.
+on manifolds, an very promising approach in recent engineering literature.
 The text reflects which MRPT C++ library\footnote{\texttt{http://www.mrpt.org/}} functions implement
 each of the described algorithms. 
 All the implementations have been thoroughly validated by means of unit testing.
@@ -109,16 +109,107 @@ All the implementations have been thoroughly validated by means of unit testing.
 \section{Basic definitions}
 \label{sect:basic}
 
-Mathematically, the \emph{special orthogonal} group $\mathbf{SO}(3)$ comprises all possible 
-rigid rotations in $\mathbb{R}^3$ (the Euclidean 3D space). 
-The members of this group are $3 \times 3$ orthogonal matrices
-which define rotations. Accounting for translations as well leads us 
-to the \emph{special Euclidean} 
-Lie group $\mathbf{SE}(3)$, the group of all possible linear isometries (``rigid`` transformations)
-that $\mathbb{R}^3$ can undergo \cite{eade2008phd,gallier2001geometric}. 
+This report focuses on geometry for the most interesting case of an Euclidean space in 
+engineering: the three-dimensional space $\mathbb{R}^3$. 
+Over this space one can define an arbitrary \emph{transformation} through 
+a function or mapping:
 
-In this report we refer to $\mathbf{SE}(3)$ transformations as \emph{poses}.
-A pose can be described by means of a 3D translation plus an orthonormal vector base, 
+\begin{equation}
+ f: \quad \mathbb{R}^3 \rightarrow \mathbb{R}^3
+\end{equation}
+
+For now, assume $f$ can be any $3 \times 3$ matrix $\mathbf{R}$, 
+such as the mapping function 
+from a point $\mathbf{x_1}=[x_1 ~ y_1 ~ z_1]^\top$ to $\mathbf{x_2}=[x_2 ~ y_2 ~ z_2]^\top$ is simply:
+
+\begin{equation}
+\left(
+\begin{array}{c}
+ x_2 \\ y_2 \\ z_2
+\end{array}
+\right)
+=
+ \mathbf{x_2} 
+= 
+\mathbf{R} \mathbf{x_1}
+=
+\mathbf{R} 
+\left(
+\begin{array}{c}
+ x_1 \\ y_1 \\ z_1
+\end{array}
+\right)
+\end{equation}
+
+From all the infinite possibilities for $\mathbf{R}$, the set
+of \emph{orthogonal matrices} with determinant of $\pm 1$ 
+(i.e. $\mathbf{R}\mathbf{R}^\top=\mathbf{R}^\top\mathbf{R} = \mathbf{I_3}$)
+forms the so called \emph{orthogonal group} or $\mathbf{O}(3)$.
+All these matrices define \emph{isometries}, that is, transformations that
+preserve distances between any two points. 
+From all the isometries, we are only interested here in those with a 
+determinant of $+1$, named \emph{proper} isometries. 
+They constitute the group of proper orthogonal transformations, or
+\emph{special orthogonal group} $\mathbf{SO}(3)$ \cite{gallier2001geometric}.
+
+The group of matrices in $\mathbf{SO}(3)$ represents \emph{pure} rotations only.
+In order to also handle translations, we can take into account $4 \times 4$
+transformation matrices $\mathbf{T}$ and extend 3D points with a fourth 
+\emph{homogeneous} coordinate (which in this report will be always the unity), 
+thus:
+
+\begin{eqnarray}
+\left(
+\begin{array}{c}
+ \mathbf{x_2} \\ 1
+\end{array}
+\right)
+&=& 
+\mathbf{T}
+\left(
+\begin{array}{c}
+ \mathbf{x_1} \\ 1
+\end{array}
+\right)
+\nonumber \\
+\label{eq:x2_T_x1}
+\left(
+\begin{array}{c}
+ x_2 \\ y_2 \\ z_2 \\ 1
+\end{array}
+\right)
+&=& 
+\left(
+\begin{array}{c|c}
+\mathbf{R} &  
+ \begin{array}{c}
+   t_x \\ t_y \\ t_z 
+ \end{array} \\
+\hline 
+ \begin{array}{ccc}
+  0 & 0 & 0
+ \end{array} 
+ & 
+ 1
+\end{array}
+\right)
+\left(
+\begin{array}{c}
+ x_1 \\ y_1 \\ z_1 \\ 1
+\end{array}
+\right)
+\end{eqnarray}
+
+The so defined set of transformation matrices $\mathbf{T}$, 
+along the group operation of matrix product, 
+forms the group affine rigid motions which, with \emph{proper} rotations 
+($|\mathbf{R}|=+1$), is denoted as the special Euclidean group $\mathbf{SE}(3)$, 
+which is a Lie group. Chapter \ref{chap:se3_lie} will explain what this means 
+and how to exploit it in engineering and optimization problems.
+
+In this report we will refer to $\mathbf{SE}(3)$ transformations as \emph{poses}.
+As seen in Eq.~(\ref{eq:x2_T_x1}), a pose can be described by means of a 3D translation 
+plus an orthonormal vector base (the columns of $\mathbf{R}$), 
 or coordinate frame, relative to any other arbitrary coordinate reference system. 
 The overall number of degrees of freedom is six, hence they can be also referred 
 to as \emph{6D poses}.
@@ -175,7 +266,7 @@ to the reference frame of $\mathbf{p1}$ (this one, also in global coordinates), 
 relationship expressed as $\mathbf{p2} = \mathbf{p} \ominus \mathbf{p1}$.
 
 
-Up to this point, poses, pose/point and pose/pose compositions have been described 
+Up to this point, poses, pose/point and pose/pose compositions have been mostly described 
 under a purely geometrical point of view. 
 The next section introduces some of the most commonly employed parameterizations.
 
@@ -1802,7 +1893,7 @@ M^{-1} &=&
 
 %% ================================================
 \chapter{Lie algebra of $\mathbf{SE}(3)$}
-\label{sect:se3_lie}
+\label{chap:se3_lie}
 
 Since $\mathbf{SE}(3)$ is a Lie group, there exists a logarithm function that maps a group
 element into its tangent-space 6D vector, with the inverse operation being the exponential map 
