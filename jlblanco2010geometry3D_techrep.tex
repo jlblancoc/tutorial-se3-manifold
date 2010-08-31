@@ -10,6 +10,9 @@
 \usepackage[utf8x]{inputenc}
 
 \usepackage{amsfonts}  % For \mathbb
+\usepackage{amsthm}	% For \theorem
+
+\newtheorem{mytheorem}{Theorem}
 
 \usepackage{fancyhdr}               % Cabeceras
 %\usepackage[dvips]{graphicx}
@@ -143,11 +146,11 @@ from a point $\mathbf{x_1}=[x_1 ~ y_1 ~ z_1]^\top$ to $\mathbf{x_2}=[x_2 ~ y_2 ~
 \end{equation}
 
 The set of all invertible $3 \times 3$ matrices forms the 
-general linear group $\mathbf{GL}(3)$.
+general linear group $\mathbf{GL}(3,\mathbb{R})$.
 From all the infinite possibilities for $\mathbf{R}$, the set
 of \emph{orthogonal matrices} with determinant of $\pm 1$ 
 (i.e. $\mathbf{R}\mathbf{R}^\top=\mathbf{R}^\top\mathbf{R} = \mathbf{I_3}$)
-forms the so called \emph{orthogonal group} or $\mathbf{O}(3) \subset \mathbf{GL}(3)$.
+forms the so called \emph{orthogonal group} or $\mathbf{O}(3) \subset \mathbf{GL}(3,\mathbb{R})$.
 Note that the group operator is the standard matrix product, since multiplying 
 any two matrices from $\mathbf{O}(3)$ gives another member of $\mathbf{O}(3)$.
 All these matrices define \emph{isometries}, that is, transformations that
@@ -212,15 +215,14 @@ t_x ~~ t_y ~~ t_z
 \end{eqnarray}
 
 In general, any invertible $4 \times 4$ matrix belongs to the 
-general linear group $\mathbf{GL}(4)$, but in the particular case of 
+general linear group $\mathbf{GL}(4,\mathbb{R})$, but in the particular case of 
 the so defined set of transformation matrices $\mathbf{T}$ 
 (along with the group operation of matrix product), 
 they form the group of affine rigid motions which, with \emph{proper} rotations 
 ($|\mathbf{R}|=+1$), is denoted as the special Euclidean group $\mathbf{SE}(3)$.
 It turns out that $\mathbf{SE}(3)$ is also a Lie group, and 
-a manifold with structure $\mathbf{SO}(3) \times \mathbb{R}^3$ embedded in 
-$\mathbf{GL}(4)$. 
-Chapters \ref{chap:mat_deriv}-\ref{chap:se3_lie} will explain 
+a manifold with structure $\mathbf{SO}(3) \times \mathbb{R}^3$ (see \S\ref{sect:lie:linear}). 
+Chapters \ref{chap:mat_deriv}-\ref{ch:se3_optim} will explain 
 what all this means and how to exploit it in engineering optimization problems.
 
 In this report we will refer to $\mathbf{SE}(3)$ transformations as \emph{poses}.
@@ -410,7 +412,7 @@ of a pose may drift away of being unitary.
 This is specially true if each component of the quaternion is estimated 
 independently, such as within a Kalman filter or 
 any other Gauss-Newton iterative optimizer
-(for an alternative, see \S\ref{chap:se3_lie}).
+(for an alternative, see \S\ref{ch:se3_optim}).
 
 The normalization function is simply:
 
@@ -846,7 +848,7 @@ are 3D+Quat forms (e.g. see \cite{davison2007mrt}), thus
 we will not describe how to 
 obtain covariance matrices of a transformation matrix here.
 Note however that Jacobians of matrices are sometimes handy 
-as intermediaries (see \S\ref{chap:mat_deriv} and \S\ref{chap:se3_lie}).
+as intermediaries (see \S\ref{chap:mat_deriv} and \S\ref{ch:se3_optim}).
 
 
 \subsubsection{Implementation in MRPT}
@@ -2196,10 +2198,10 @@ of a $4 \times 4$ matrix with this structure:
 \noindent where $\mathbf{R} \in \mathbf{SO}(3)$  
 is a proper rotation matrix (see \S\ref{sect:basic}) and $\mathbf{t}=[t_x ~ t_y ~ t_z]^\top \in \mathbb{R}^3$ is a translation vector.
 In general, any invertible $4 \times 4$ matrix belongs to the 
-general linear group $\mathbf{GL}(4)$, but 
-matrices in the form above belongs to $\mathbf{SE}(4)$, 
+general linear group $\mathbf{GL}(4,\mathbb{R})$, but 
+matrices in the form above belongs to $\mathbf{SE}(3)$, 
 which actually is the manifold $\mathbf{SO}(3) \times \mathbb{R}^3$
-embedded in the more general $\mathbf{GL}(4)$.
+embedded in the more general $\mathbf{GL}(4,\mathbb{R})$.
 The point here is to notice that the manifold has a dimensionality of 12: 
 9 coordinates for the $3\times 3$ matrix plus other 3 for the translation vector.
 
@@ -2207,7 +2209,7 @@ Since we will be interested here in expressions involving \emph{derivatives} of 
 we need to define a clear notation for what a derivative of a matrix actually means.
 As an example, consider an arbitrary function, say, 
 the map of pairs of poses $p_1$, $p_2$ to their composition $p_1 \oplus p_2$, that is,
-$f_\oplus: \mathbf{SE}(4) \times \mathbf{SE}(4) \mapsto \mathbf{SE}(4)$. 
+$f_\oplus: \mathbf{SE}(3) \times \mathbf{SE}(3) \mapsto \mathbf{SE}(3)$. 
 Then, what does the expression 
 
 \begin{equation}
@@ -2303,7 +2305,7 @@ as when dealing with optimization problems -- see \S\ref{chap:se3_lie:deriv}.
 
 \subsection{Pose-pose composition}
 
-Let $f_\oplus: \mathbf{SE}(4) \times \mathbf{SE}(4) \mapsto \mathbf{SE}(4)$ denote 
+Let $f_\oplus: \mathbf{SE}(3) \times \mathbf{SE}(3) \mapsto \mathbf{SE}(3)$ denote 
 the pose composition operation, 
 such as $f_\oplus(A,B) = A \oplus B$ 
 (refer to \S\ref{sect:basic} and \S\ref{ch:pose_pose_comp}).
@@ -2341,7 +2343,7 @@ expanded element by element and, rearranging terms, it can be easily demonstrate
 
 \subsection{Pose-point composition}
 
-Let $g_\oplus: \mathbf{SE}(4) \times \mathbb{R}^3 \mapsto \mathbb{R}^3$ denote 
+Let $g_\oplus: \mathbf{SE}(3) \times \mathbb{R}^3 \mapsto \mathbb{R}^3$ denote 
 the pose-point composition operation
 such as $g_\oplus(A,p) = A \oplus p$ 
 (refer to \S\ref{ch:comp_pose_pt}).
@@ -2440,70 +2442,588 @@ Operating:
 
 
 %% ================================================
-\chapter{Derivatives on the manifold $\mathbf{SE}(3)$}
-\label{chap:se3_lie}
+\chapter{Concepts on Lie groups}
+\label{chap:lie_intro}
 
 \section{Definitions}
 \label{sect:lie_defs}
 
-Before getting in the applications of seeing rigid motions as a Lie group, 
-we need to provide several mathematical definitions which are basic to understand
-the subsequent discussion. 
+Before addressing the practical applications of looking at rigid motions 
+as a Lie group, 
+we need to provide several mathematical definitions which are fundamental 
+to understand the subsequent discussion 
+(for example, what a Lie group actually is!).
 A more in-deep treatment of some of the topics covered in this chapter 
 can be found in \cite{gallier2001geometric,varadarajan1974lie}.
 
 \subsection{Mathematical group}
+\label{sect:defs:group}
 
-A group 
+A group $G$ is a structure consisting of a 
+finite or infinite set of elements plus
+some binary operation (the \emph{group operation}), 
+which for any two group elements $A,B \in G$
+is denoted as the multiplication $A B$. 
+
+A group is said to be a group \emph{under} some given operation if 
+it fulfills the following conditions:
+\begin{enumerate}
+ \item \textbf{Closure.} The group operation is a function $G \times G \mapsto G$, 
+that is, for any $A,B \in G$, we have $A B \in G$.
+ \item \textbf{Associativity.} For $A,B,C \in G$, $(AB)C = A(BC)$.
+ \item \textbf{Identity element.} There must exists an identity element $I \in G$,
+such as $IA=AI=A$ for any $A \in G$.
+ \item \textbf{Inverse.} For any $A \in G$ there must exist an inverse element $A^{-1}$
+such as $A A^{-1} = A^{-1} A = I$.
+\end{enumerate}
+
+
+Examples of simple groups are:
+\begin{itemize}
+ \item The integer numbers $\mathbb{Z}$, under the operation of addition. 
+ \item The sets of invertible $N \times N$ matrices $\mathbf{GL}(N,\mathbb{R})$, 
+or the 3D special orthogonal group $\mathbf{SO}(3)$ (recall \S\ref{sect:basic}) are groups 
+under the operation of standard matrix multiplication.
+\end{itemize}
 
 
 \subsection{Manifold}
 
+An $N$-dimensional manifold $M$ is a topological space where 
+every point $p \in M$ is endowed with \emph{local} Euclidean structure.
+Another way of saying it: the neighborhood of every point $p$ 
+is homeomorphic\footnote{A 
+function that maps from $M$ to $\mathbb{R}^N$ is homeomorphic if it is 
+a bicontinuous function, that is, both $f(\cdot)$ and its inverse $f(\cdot)^{-1}$
+are continuous.} to $\mathbb{R}^N$.
 
+From an intuitive point of view, it means that, in an infinitely small vicinity of
+a point $p$ the space looks ``flat''. A good way to visualize it is to think 
+of the surface of the Earth, a manifold of dimension 2 (we can move in two perpendicular 
+directions, North-South and East-West). Although it is curved, at a given point 
+it looks ``flat'', or a $\mathbb{R}^2$ Euclidean space (refer to Fig.~\ref{fig:manifold}).
 
-\subsection{Smooth manifold}
-
-
-
-\subsection{Tangent space of a manifold}
-
-
-
-\subsection{Lie group}
-
-
-\subsection{Lie algebra}
 
 \begin{figure}
 \centering
 \includegraphics[width=0.40\textwidth]{imgs/manifold_tangent_space.eps}
-\caption{All the elements related to a manifold discussed in the text: 
-the manifold itself $M$, a point on it $x \in M$, the tangent space
-at $x$, denoted $T_x M$ and the vectorial base of that space, the algebra 
-$\mathfrak{m}$.
+\caption{An illustration of the elements introduced in the text:
+a sample 2-dimensional manifold $M$ (embedded in 3D-space), 
+a point on it $x \in M$, the tangent space at $x$, 
+denoted $T_x M$ and the algebra $\mathfrak{m}$, the vectorial base of that space.
 }
 \label{fig:manifold}
 \end{figure}
 
+\subsection{Smooth manifolds embedded in $\mathbb{R}^N$}
+\label{sect:smooth_manif}
+
+A $D$-dimensional manifold is a smooth manifold embedded in the 
+$\mathbb{R}^N$ space ($N \geq D$) if every point $p \in M$ is 
+contained by $U \subseteq M$, defined by some function:
+
+\begin{eqnarray}
+ \varphi: & \Omega & \mapsto U \\
+              & \mathbb{R}^N &  \mapsto M
+\end{eqnarray}
+
+\noindent where $\Omega$ is an open subset of $\mathbb{R}^N$
+which contains the origin of that space (i.e. $\mathbf{0}_N$). 
+
+Additionally, the function $\varphi$ must fulfill:
+\begin{enumerate}
+ \item Being a homeomorphism (i.e. $\varphi(\cdot)$ and $\varphi(\cdot)^{-1}$ are continue).
+ \item Being smooth ($C^{\infty}$).
+ \item Its derivative at the origin $\varphi'(\mathbf{0}_N)$ must be injective.
+\end{enumerate}
+
+The function $\varphi()$ is a \emph{local parameterization} of M 
+centered at the point $p$, where:
+
+\begin{eqnarray}
+ \varphi(\mathbf{0}_N) = p \quad  \quad  \quad  , p \in M
+\end{eqnarray}
+
+The inverse function:
+
+\begin{eqnarray}
+ \varphi^{-1}: & U & \mapsto \Omega  \\
+              & M  &  \mapsto \mathbb{R}^N
+\end{eqnarray}
+
+\noindent is called a \emph{local chart} of M, since provides a ``flattened'' 
+representation of an area of the manifold.
 
 
-$M$
 
-$T_x M$
+\subsection{Tangent space of a manifold}
+\label{sect:tang_space}
 
-$x \in M$
+A $D$-dimensional manifold $M$ embedded in $\mathbb{R}^N$ 
+(with $N \geq D$) has associated an $N$-dimensional tangent space 
+for every point $p \in M$. 
+This space is denoted as $T_x M$ and in non-singular points 
+has a dimensionality of $D$ (identical to that of the manifold).
+See Fig.~\ref{fig:manifold} for an illustration of this concept.
 
-$\mathfrak{m}$
+Informally, a tangent space can be visualized as the vector space
+of the derivatives at $p$ of all possible smooth curves that pass 
+through $p$, e.g. $T_x M$ contains all the possible 
+``velocity'' vectors of a particle at $p$ and constrained to $M$.
 
 
-\section{$\mathbf{SE}(3)$ as a Lie group}
-\label{sect:se4_lie}
 
-Since $\mathbf{SE}(3)$ is a Lie group, there exists a logarithm function that maps a group
-element into its tangent-space 6D vector, with the inverse operation being the exponential map 
-\cite{eade2008phd,gallier2001geometric}.
+\subsection{Lie group}
+\label{sect:lie_group_def}
 
-XXX
+A Lie group is a (non-empty) subset $G$ of $\mathbb{R}^N$ that fulfills:
+\begin{enumerate}
+ \item $G$ is a group (see \S\ref{sect:defs:group}).
+ \item $G$ is a manifold in $\mathbb{R}^N$ (see \S\ref{sect:smooth_manif}).
+ \item Both, the group product operation ($\cdot: G \mapsto G$) 
+and its inverse (${}^{-1}: G \mapsto G$) are smooth functions.
+\end{enumerate}
+
+
+\subsection{Linear Lie groups (or \emph{matrix groups})}
+\label{sect:lie:linear}
+
+Let the set of all $N \times N$ matrices (invertible or not)
+be denoted as $\mathbf{M}(N,\mathbb{R})$. 
+We also define the Lie bracket operator $[\cdot,\cdot]$ such as 
+$[A,B]=AB-BA$ for any $A,B \in \mathbf{M}(N,\mathbb{R})$.
+
+Then, a theorem from Von Newman and Cartan reads (\cite{gallier2001geometric}, p.397):
+
+\begin{mytheorem}
+A closed subgroup $G$ of $\mathbf{GL}(N,\mathbb{R})$
+is a linear Lie group (thus, a smooth manifold in $\mathbb{R}^{N^2}$).
+Also, the set $\mathfrak{g}$:
+
+\begin{equation}
+  \mathfrak{g} = \{ \mathbf{X} \in \mathbf{M}(N,\mathbb{R}) | e^{t\mathbf{X}} \in G,  \forall t \in \mathbb{R}  \}
+\end{equation}
+
+\noindent is a vector space equal to $T_I G$ (the tangent space of $G$ 
+at the identity entity $I$), and $\mathfrak{g}$ is closed under the Lie bracket.
+\end{mytheorem}
+
+It must be noted that, for any square matrix $\mathbf{M}$, 
+the exponential map $e^{\mathbf{M}}$ is well defined and coincides with the matrix 
+exponentiation, which in general has this (always convergent) power series form:
+
+\begin{equation}
+\label{eq:exp_map_matrices}
+e^{\mathbf{M}} = \sum_{k=0}^\infty \frac{1}{k!} \mathbf{M}^k
+\end{equation}
+
+
+For the purposes of this report, the interesting result of the theorem 
+above is that the group $\mathbf{SO}(3)$ (proper rotations in $\mathbb{R}^3$) 
+can be also viewed now as a linear Lie group, since it is a 
+subgroup of $\mathbf{GL}(3,\mathbb{R})$.
+Regarding the group of rigid transformations $\mathbf{SE}(3)$, 
+since it is isomorphic to a subset of $\mathbf{GL}(4,\mathbb{R})$
+(any pose in $\mathbf{SE}(3)$ can be represented as a $4\times 4$ matrix), 
+we find out that it is also a linear Lie group \cite{gallier2001geometric}.
+
+
+\subsection{Lie algebra}
+
+A Lie algebra\footnote{For our purposes, an algebra means a vector space $A$ plus
+a bilinear multiplication function: $A \times A \mapsto A$.}
+is an algebra $\mathfrak{m}$ together with a Lie bracket operator
+$[\cdot,\cdot]: \mathfrak{m} \times \mathfrak{m} \mapsto \mathfrak{m}$
+such as for any elements $a,b,c \in \mathfrak{m}$
+it holds:
+
+\begin{eqnarray}
+ & [a,b] = -[b,a]   & \quad\quad\quad \text{(Anti-commutativity)} \\
+ & \left[ c, \left[a,b \right] \right] = 
+\left[ \left[c,a\right] , b \right] + 
+\left[ a,\left[c,b\right] \right]  &  \quad\quad\quad \text{(Jacobi identity)} 
+\end{eqnarray}
+
+It follows that $[a,a]=0$ for any $a \in \mathfrak{m}$.
+
+An important fact is that the Lie algebra $\mathfrak{m}$ 
+associated to a Lie group $M$ happens to be the tangent 
+space at the identity element $\mathbf{I}$, that is: 
+
+\begin{equation}
+ \mathfrak{m} = T_\mathbf{I} M   \quad\quad\quad\text{(For $M$ being a Lie group)}
+\end{equation}
+
+
+
+\subsection{Exponential and logarithm maps of a Lie group}
+\label{sect:exp_ln}
+
+Associated to a Lie group $M$ and its 
+Lie algebra $\mathfrak{m}$ there are 
+two important functions:
+
+\begin{itemize}
+\item{\textbf{The exponential map}, which maps elements from 
+the algebra to the manifold and determines the local structure 
+of the manifold:
+\begin{equation}
+ \exp: \mathfrak{m}  \mapsto M
+\end{equation}
+}
+\item{\textbf{The logarithm map}, which maps elements from 
+the manifold to the algebra:
+\begin{equation}
+ \ln: M  \mapsto \mathfrak{m}
+\end{equation}
+}
+\end{itemize}
+
+The next chapter will describe these functions for 
+the cases of interest in this report.
+
+
+
+\chapter{$\mathbf{SE}(3)$ as a Lie group}
+\label{chap:se3_lie}
+
+\section{Properties}
+
+For the sake of clarity, we repeat here the description of 
+the group of rigid transformations in $\mathbb{R}^3$ already given 
+in \S\ref{sect:mat_deriv:not}.
+This group of transformations is denoted as $\mathbf{SE}(3)$, 
+and its members are the set of $4 \times 4$ matrices with this structure:
+
+\begin{equation}
+\label{eq:T_Rt_bis}
+ \mathbf{T} = 
+\left(
+\begin{array}{c|c}
+  \mathbf{R} & \mathbf{t} \\
+\hline
+  \mathbf{0}_{1\times 3} & 1
+\end{array}
+\right)
+\end{equation}
+
+\noindent with $\mathbf{R} \in \mathbf{SO}(3)$, 
+$\mathbf{t}=[t_x ~ t_y ~ t_z]^\top \in \mathbb{R}^3$
+and group product the standard matrix product.
+
+~\\
+
+Some facts on this group (see for example, \cite{gallier2001geometric}, \S14.6):
+
+\begin{itemize}
+ \item $\mathbf{SE}(3)$ is a 6-dimensional manifold (i.e. has 6 degrees of freedom). Three correspond to the 3D translation vector and the other three to the rotation.
+ \item Since $\mathbf{SE}(3)$ is embedded in the more general $\mathbf{GL}(4,\mathbb{R})$, 
+         from \S\ref{sect:lie:linear} we have that it is also a Lie group.
+ \item  $\mathbf{SE}(3)$ is diffeomorphic to $\mathbf{SO}(3) \times \mathbb{R}^3$ as a manifold,
+  where each element is described by $3\cdot 3+3=12$ coordinates (see \S\ref{sect:mat_deriv:not}).
+ \item  $\mathbf{SE}(3)$ is \emph{not} isomorphic to $\mathbf{SO}(3) \times \mathbb{R}^3$ as a group, 
+since the group multiplications of both groups are different. 
+It is said that $\mathbf{SE}(3)$ is a semidirect product of 
+the groups $\mathbf{SO}(3)$ and $\mathbb{R}^3$.
+ \item  $\mathbf{SE}(3)$ is isomorphic to a subset of $\mathbf{GL}(4,\mathbb{R})$.
+\end{itemize}
+
+
+
+\section{Lie algebra of $\mathbf{SO}(3)$}
+
+Since $\mathbf{SE}(3)$ has the manifold structure of the product 
+$\mathbf{SO}(3) \times \mathbb{R}^3$, it makes sense to define first 
+the properties of $\mathbf{SO}(3)$, which is also a Lie group 
+(by the way, $\mathbb{R}^N$ can be also considered a Lie group for any $N \geq 1$).
+
+
+The group $\mathbf{SO}(3)$ has an associated Lie algebra $\mathfrak{so}(3)$, 
+whose base are three skew symmetric matrices, each corresponding to 
+infinitesimal rotations along each axis:
+
+\begin{eqnarray}
+\mathfrak{so}(3) &=& \{  \mathbf{G^{\mathfrak{so}(3)}_i} \}_{i=1,2,3}  \\
+\mathbf{G^{\mathfrak{so}(3)}_1} &=& \left[ \begin{array}{c} 1 \\ 0 \\0 \end{array} \right]_\times
+= 
+\left(
+\begin{array}{ccc}
+0 & 0 & 0  \\
+0 & 0 & -1  \\
+0 & 1 & 0  
+\end{array}
+\right)
+\\
+\mathbf{G^{\mathfrak{so}(3)}_2} &=& \left[ \begin{array}{c} 0 \\ 1 \\0 \end{array} \right]_\times 
+= 
+\left(
+\begin{array}{ccc}
+0 & 0 & 1  \\
+0 & 0 & 0  \\
+-1 & 0 & 0  
+\end{array}
+\right)
+\\
+\mathbf{G^{\mathfrak{so}(3)}_3} &=& \left[ \begin{array}{c} 0 \\ 0 \\1 \end{array} \right]_\times 
+= 
+\left(
+\begin{array}{ccc}
+0 & -1 & 0  \\
+1 & 0 & 0  \\
+0 & 0 & 0  
+\end{array}
+\right)
+\\
+\end{eqnarray}
+
+\noindent where the screw matrix operator is defined as:
+
+\begin{equation}
+\label{eq:skew}
+\left[ \begin{array}{c} x \\ y \\z \end{array} \right]_\times
+=
+\left(
+\begin{array}{ccc}
+0 & -z & y  \\
+z & 0 & -x  \\
+-y & x & 0  
+\end{array}
+\right)
+\end{equation}
+
+Notice that this means that an arbitrary element in $\mathfrak{so}(3)$ 
+has three coordinates (each coordinate multiplies to a generator 
+matrix $\{  \mathbf{G^{\mathfrak{so}(3)}_1}, \mathbf{G^{\mathfrak{so}(3)}_2}, \mathbf{G^{\mathfrak{so}(3)}_3} \}$) so it can 
+be represented as a vector in $\mathbb{R}^3$.
+
+
+\section{Lie algebra of $\mathbf{SE}(3)$}
+
+The group $\mathbf{SE}(3)$ has an associated Lie algebra $\mathfrak{se}(3)$, 
+whose base are these six $4 \times 4$ matrices, each corresponding to 
+either an infinitesimal rotations along each axis or an infinitesimal translation:
+
+\begin{eqnarray}
+\mathfrak{se}(3) &=& \{  \mathbf{G^{\mathfrak{se}(3)}_i} \}_{i=1...6}  \\
+\mathbf{G^{\mathfrak{se}(3)}_{\{1,2,3\}} } &=& 
+\left(
+\begin{array}{c|c}
+ \mathbf{G^{\mathfrak{so}(3)}_{\{1,2,3\}} } & \begin{array}{c} 0 \\0 \\0 \end{array} \\
+\hline    0 & 0
+\end{array}
+\right) 
+\\
+\mathbf{G^{\mathfrak{se}(3)}_4 } &=& 
+\left(
+\begin{array}{c|c}
+ \mathbf{0}_{3\times 3} & \begin{array}{c} 1 \\0 \\0 \end{array} \\
+\hline    0 & 0
+\end{array}
+\right) 
+\\
+\mathbf{G^{\mathfrak{se}(3)}_5 } &=& 
+\left(
+\begin{array}{c|c}
+ \mathbf{0}_{3\times 3} & \begin{array}{c} 0 \\1 \\0 \end{array} \\
+\hline    0 & 0
+\end{array}
+\right) 
+\\
+\mathbf{G^{\mathfrak{se}(3)}_6 } &=& 
+\left(
+\begin{array}{c|c}
+ \mathbf{0}_{3\times 3} & \begin{array}{c} 0 \\0 \\1 \end{array} \\
+\hline    0 & 0
+\end{array}
+\right)
+\end{eqnarray} 
+
+Recall that this means that an arbitrary element in $\mathfrak{se}(3)$ 
+has six coordinates (each coordinate multiplies to a generator matrix) 
+so it can be represented as a vector in $\mathbb{R}^6$.
+In this consists what is called the ``linearization'' of the manifold 
+$\mathbf{SE}(3)$.
+
+
+\section{Exponential and logarithm functions}
+
+As defined in \S\ref{sect:exp_ln}, the exponential and logarithm maps 
+transform elements between Lie groups and their corresponding 
+Lie algebras. 
+In this report we sometimes denote the $\exp$ and $\ln$ functions 
+as operating on vectors and returning vectors, respectively, 
+of the corresponding dimensions (3 for $\mathbf{SO}(3)$, 6 for $\mathbf{SE}(3)$). 
+Those vectors are the coordinates in the 
+vector spaces defined by the corresponding Lie algebras.
+
+
+\subsection{For $\mathbf{SO}(3)$}
+
+\subsubsection{Exponential map}
+
+The map:
+
+\begin{equation}
+  \exp: \mathfrak{so}(3) \mapsto \mathbf{SO}(3)
+\end{equation}
+
+\noindent is well-defined, surjective, and is given by the Rodrigue's 
+formula from 1840:
+
+\begin{equation}
+  e^ { \mathbf{v} } \equiv  e^ { [\mathbf{v}]_\times } = 
+\cos \theta \mathbf{I_3}
++ \frac{\sin \theta}{\theta} [\mathbf{v}]_\times 
++ \frac{1- \cos \theta}{\theta^2} [\mathbf{v}]^2_\times
+\end{equation}
+
+\noindent where 
+the angle $\theta = |\mathbf{v}|$ and 
+$[\mathbf{v}]_\times$ is the skew symmetric matrix (see Eq.(\ref{eq:skew}))
+generated by the 3-vector $\mathbf{v}$.
+
+
+\subsubsection{Logarithm map}
+
+The map:
+
+\begin{equation}
+  \ln: \mathbf{SO}(3) \mapsto \mathfrak{so}(3)
+\end{equation}
+
+\noindent is well-defined, surjective, and is the inverse of the $\exp$ function defined above. 
+It corresponds to the logarithm of the $3\times 3$ rotation matrices.
+
+
+
+\subsection{For $\mathbf{SE}(3)$}
+
+\subsubsection{Exponential map}
+
+Let 
+
+\begin{equation}
+\mathbf{v}= \left( \begin{array}{c} \mathbf{\omega} \\ \mathbf{t} \end{array} \right)
+\end{equation}
+
+\noindent denote the 6-vector of coordinates in 
+the Lie algebra $\mathfrak{se}(3)$, 
+comprising
+two separate 3-vectors: $\mathbf{\omega}$, the vector that determine 
+the rotation, and $\mathbf{t}$ which determines the translation.
+Furthermore, we define the $4 \times 4$ matrix:
+
+\begin{equation}
+ \mathbf{A}(\mathbf{v})=
+\left( 
+\begin{array}{cc}
+ [\mathbf{\omega}]_\times  & \mathbf{t}^\top \\
+ 0 & 0
+\end{array}
+\right)
+\end{equation}
+
+
+Then, the map:
+
+\begin{equation}
+  \exp: \mathfrak{se}(3) \mapsto \mathbf{SE}(3)
+\end{equation}
+
+\noindent is well-defined, surjective, and has the closed form:
+
+\begin{eqnarray}
+  e^ { \mathbf{v} } \equiv  e^ { \mathbf{A}(\mathbf{v}) } =
+\left(
+\begin{array}{cc}
+  e^{[\mathbf{\omega}]_\times} & \mathbf{V} \mathbf{t}^\top \\
+   0 & 1
+\end{array}
+\right)
+\\
+\mathbf{V} = \mathbf{I_3}
++ \frac{1-\cos \theta}{\theta^2} [\mathbf{\omega}]_\times 
++ \frac{\theta- \sin \theta}{\theta^3} [\mathbf{\omega}]^2_\times
+\end{eqnarray}
+
+\noindent with $\theta = |\mathbf{\omega}|$.
+
+
+\subsubsection{Logarithm map}
+
+The map:
+
+\begin{equation}
+  \ln: \mathbf{SE}(3) \mapsto \mathfrak{se}(3)
+\end{equation}
+
+\noindent is well-defined, surjective, and is the inverse of the $\exp$ function defined above. 
+It corresponds to the logarithm of the $4\times 4$ transformation matrices.
+
+
+
+\subsection{Implementation in MRPT}
+
+The class \texttt{mrpt::poses::CPose3D} implements both the exponential and logarithm
+maps for both $\mathbf{SO}(3)$ and $\mathbf{SE}(3)$.
+The exponential maps can be accessed through static methods, which return objects 
+with the corresponding $\mathbf{SO}(3)$ or $\mathbf{SE}(3)$ transformation matrix:
+
+\begin{lstlisting}
+#include <mrpt/base.h> 
+using namespace mrpt::poses; 
+using namespace mrpt::math;
+
+CArrayDouble<3>  so3_vec; 
+CArrayDouble<6>  se3_vec; 
+
+CPose3D rot  = CPose3D::exp(so3_vec);  // Generates a pure rotation 
+CPose3D pose = CPose3D::exp(se3_vec);  // Generates a translation & rotation
+\end{lstlisting}
+
+
+The logarithms can be accessed through normal methods of an object which 
+holds the transformation of interest, and return vectors or lengths 3 or 6:
+
+\begin{lstlisting}
+#include <mrpt/base.h> 
+using namespace mrpt::poses; 
+using namespace mrpt::math;
+
+CPose3D    p = ...
+
+CArrayDouble<3>  p_in_so3 = p.ln_rotation();
+CArrayDouble<6>  p_in_se3 = p.ln();
+\end{lstlisting}
+
+
+
+
+\chapter{Optimization problems on $\mathbf{SE}(3)$}
+\label{ch:se3_optim}
+
+
+\section{What's wrong with optimization solutions?}
+
+Kalman, least-squares work well for Euclidean spaces.
+
+Obtain increments to the state space.
+
+Parameterizations: quaternions. 
+
+If added to a quaternion: not normalized, 
+can optimize a non-existent DoF...
+
+
+\section{An elegant solution: optimize on the manifold}
+
+\cite{gabay1982mdf}
+
+It is described next an approach which is gaining popularity 
+
+
+2 possible conventions: left and right-hand multiplication of 
+the $\epsilon$ pose increment.
 
 
 \section{Useful manifold derivatives}
