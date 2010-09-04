@@ -3057,7 +3057,7 @@ S(\mathbf{x}) = (\mathbf{f}(\mathbf{x})-\mathbf{z})^\top (\mathbf{f}(\mathbf{x})
  = | \mathbf{f}(\mathbf{x})-\mathbf{z} |^2
 \end{equation}
 
-To achieve it, $\mathbf{x}$ is updated iteratively by means of small increments:
+To achieve this, $\mathbf{x}$ is updated iteratively by means of small increments:
 
 \begin{equation}
 \label{eq:optim1}
@@ -3187,7 +3187,7 @@ group product falls back to common addition
 
 The only difference between both alternatives above
 will be found in the intermediary result $\E^\star$ 
-(the optimal step in the manifold), 
+(the optimal step in the linearized manifold), 
 which will switch its sign, but it will cancel out 
 when doing the $\E \leftarrow \E \boxplus \E^\star$ update. 
 Therefore, both are equivalent alternatives.
