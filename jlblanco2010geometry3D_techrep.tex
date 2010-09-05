@@ -111,6 +111,7 @@ numerical estimation of the Jacobians.
 
 \textbf{History of document versions:}
 \begin{itemize}
+ \item Version 2: Added more Jacobians (\S\ref{sect:jacob_eDp}, \S\ref{sect:jacob_eDp_inv}). (6/Sep/2010)
  \item Version 1: First version (Released 1/Sep/2010).
 \end{itemize}
 
@@ -2441,6 +2442,7 @@ Operating:
 \right)
 \\
 &=& 
+\label{eq:jac_dp_min_A}
 \left(
 \begin{array}{c|c}
  \mathbf{I_3} \otimes \left( (\mathbf{p}-\mathbf{t_A})^\top \right)
@@ -3245,6 +3247,7 @@ those in \S\ref{chap:mat_deriv} and the chain rule.
 
 
 \subsection{Jacobian of $e^\varepsilon \oplus D$}
+\label{sect:jacob_eD}, 
 
 Let $\mathbf{D} \in \mathbf{SE}(3)$ be a pose with associated transformation matrix:
 
@@ -3284,6 +3287,159 @@ we are interested in the derivative of $e^\E \oplus \mathbf{D}$ w.r.t $\E$:
 \right)
 \quad\quad\quad \text{(A $12 \times 6$ Jacobian)}
 \end{eqnarray}
+
+
+\newpage
+\subsection{Jacobian of $e^\varepsilon \oplus D \oplus p$}
+\label{sect:jacob_eDp}
+
+This is the composition of a pose $\mathbf{D}$ with a point $\mathbf{p}$, 
+an operation needed, for example, in Bundle Adjustment implementations \cite{triggs2000bundle}
+(with the convention of points relative to the camera being $D \oplus p$, that is, 
+$D$ being the inverse of the actual camera position).
+
+Let $\mathbf{p} \in \mathbb{R}^3$ be a 3D point, and 
+$\mathbf{D} \in \mathbf{SE}(3)$ be a pose with associated transformation matrix:
+
+\begin{equation}
+\mathbf{T}(\mathbf{D}) = 
+\left(
+\begin{array}{ccc|c}
+ d_{11} & d_{12} & d_{13} & d_{tx}   \\
+ d_{21} & d_{22} & d_{23} & d_{ty}   \\
+ d_{31} & d_{32} & d_{33} & d_{tz}   \\
+\hline
+  0 & 0 & 0 & 1
+\end{array}
+\right) 
+=
+\left(
+\begin{array}{ccc|c}
+ \mathbf{d_{c1}}  & \mathbf{d_{c2}}  & \mathbf{d_{c3}}  & \mathbf{d_{t}}  \\
+\hline
+  0 & 0 & 0 & 1
+\end{array}
+\right)
+= 
+\left(
+\begin{array}{ccc|c}
+   & \mathbf{R_D}  &  & \mathbf{d_{t}}  \\
+\hline
+  0 & 0 & 0 & 1
+\end{array}
+\right)
+\end{equation}
+
+We are interested in the derivative of $e^\E \oplus \mathbf{D} \oplus p$ w.r.t $\E$:
+
+\begin{eqnarray}
+\left. \frac{\partial (e^\E \mathbf{D}) \oplus \mathbf{p} }{\partial \E} \right|_{\E = 0}
+&=& 
+\left. \frac{\partial \mathbf{A} \oplus \mathbf{p}}{\partial \mathbf{A} } \right|_{\mathbf{A}=e^\E \mathbf{D} = \mathbf{D}}
+\left. \frac{\partial e^\E \mathbf{D}}{\partial \E} \right|_{\E=0}
+\\
+\text{\scriptsize{(Using Eq.(\ref{eq:jac_dAp_A}) \& \S\ref{sect:jacob_eD}} )} &=&
+\left(\left( \mathbf{p}^\top ~~ 1 \right) \otimes \mathbf{I_3} \right)
+\left(
+\begin{array}{cc}
+ \mathbf{0}_{3\times 3}  & -[\mathbf{d_{c1}}]_\times \\
+ \mathbf{0}_{3\times 3}  & -[\mathbf{d_{c2}}]_\times \\
+ \mathbf{0}_{3\times 3}  & -[\mathbf{d_{c3}}]_\times \\
+ \mathbf{I}_{3}  & -[\mathbf{d_{t}}]_\times \\
+\end{array}
+\right)
+\\
+&=& 
+\left(
+\begin{array}{cc}
+ \mathbf{I}_3   & - \left[ \mathbf{D} \oplus \mathbf{p} \right]_\times
+\end{array}
+\right)
+\quad\quad\quad \text{(A $3 \times 6$ Jacobian)}
+\end{eqnarray}
+
+
+
+\subsection{Jacobian of $p \ominus (e^\varepsilon \oplus D) $}
+\label{sect:jacob_eDp_inv}
+
+This is the relative position of a point $\mathbf{p}$ relative to a pose $\mathbf{D}$, 
+an operation needed, for example, in Bundle Adjustment implementations \cite{triggs2000bundle}
+(with the convention of points relative to the camera being $p \ominus D$, that is, 
+$D$ being the real position of the cameras).
+
+Let $\mathbf{p} = [p_x ~ p_y ~ p_z]^\top \in \mathbb{R}^3$ be a 3D point, and 
+$\mathbf{D} \in \mathbf{SE}(3)$ be a pose with associated transformation matrix:
+
+\begin{equation}
+\mathbf{T}(\mathbf{D}) = 
+\left(
+\begin{array}{ccc|c}
+ d_{11} & d_{12} & d_{13} & d_{tx}   \\
+ d_{21} & d_{22} & d_{23} & d_{ty}   \\
+ d_{31} & d_{32} & d_{33} & d_{tz}   \\
+\hline
+  0 & 0 & 0 & 1
+\end{array}
+\right) 
+=
+\left(
+\begin{array}{ccc|c}
+ \mathbf{d_{c1}}  & \mathbf{d_{c2}}  & \mathbf{d_{c3}}  & \mathbf{d_{t}}  \\
+\hline
+  0 & 0 & 0 & 1
+\end{array}
+\right)
+= 
+\left(
+\begin{array}{ccc|c}
+   & \mathbf{R_D}  &  & \mathbf{d_{t}}  \\
+\hline
+  0 & 0 & 0 & 1
+\end{array}
+\right)
+\end{equation}
+
+We are interested in the derivative of $p \ominus (e^\E \oplus \mathbf{D})$ w.r.t $\E$:
+
+\begin{eqnarray}
+\left. \frac{\partial \mathbf{p} \ominus (e^\E \mathbf{D}) }{\partial \E} \right|_{\E = 0}
+&=& 
+\left. \frac{\partial \mathbf{p} \ominus \mathbf{A} \oplus }{\partial \mathbf{A} } \right|_{\mathbf{A}=e^\E \mathbf{D} = \mathbf{D}}
+\left. \frac{\partial e^\E \mathbf{D}}{\partial \E} \right|_{\E=0}
+\nonumber \\
+&=&
+\left(
+\begin{array}{c|c}
+ \mathbf{I_3} \otimes \left( (\mathbf{p}-\mathbf{d_t})^\top \right)
+ &
+ -\mathbf{R_D}^\top
+\end{array}
+\right)
+\left(
+\begin{array}{cc}
+ \mathbf{0}_{3\times 3}  & -[\mathbf{d_{c1}}]_\times \\
+ \mathbf{0}_{3\times 3}  & -[\mathbf{d_{c2}}]_\times \\
+ \mathbf{0}_{3\times 3}  & -[\mathbf{d_{c3}}]_\times \\
+ \mathbf{I}_{3}  & -[\mathbf{d_{t}}]_\times \\
+\end{array}
+\right) 
+\quad\quad \text{\scriptsize{(Using Eq.(\ref{eq:jac_dp_min_A})  \& \S\ref{sect:jacob_eD}} )}
+\\
+&=& 
+\tiny{\left(
+\begin{array}{cc}
+   -\mathbf{R_D}^\top &
+  \begin{array}{ccc}
+  d_{tz} d_{21} - d_{ty} d_{31} + d_{21} p_z - d_{31} p_y & d_{tx} d_{31} - d_{tz} d_{11} - d_{11} p_z + d_{31} p_x & d_{ty} d_{11} - d_{tx} d_{21} + d_{11} p_y - d_{21} p_x \\
+  d_{tz} d_{22} - d_{ty} d_{32} + d_{22} p_z - d_{32} p_y & d_{tx} d_{32} - d_{tz} d_{12} - d_{12} p_z + d_{32} p_x & d_{ty} d_{12} - d_{tx} d_{22} + d_{12} p_y - d_{22} p_x \\
+  d_{tz} d_{23} - d_{ty} d_{33} + d_{23} p_z - d_{33} p_y & d_{tx} d_{33} - d_{tz} d_{13} - d_{13} p_z + d_{33} p_x & d_{ty} d_{13} - d_{tx} d_{23} + d_{13} p_y - d_{23} p_x \\
+  \end{array}
+\end{array}
+\right)} \nonumber \\
+ && \quad\quad \quad\quad\quad \text{(A $3 \times 6$ Jacobian)} \nonumber
+\end{eqnarray}
+
 
 
 \subsection{Jacobian of $A \oplus e^\varepsilon \oplus D$}
