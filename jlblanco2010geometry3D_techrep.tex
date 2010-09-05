@@ -2418,6 +2418,7 @@ given a pose $A$ and a point $p$, obtaining $p \ominus A$, or $\mathbf{A}^{-1} \
 Operating:
 
 \begin{eqnarray}
+\label{eq:jac_dp_min_p}
 \frac{\partial \left( \mathbf{T_A} ^{-1} \mathbf{p} \right) }{\partial \mathbf{p} } 
 &\overset{\text{Eq.(\ref{eq:jac_dAp_p})}}{=}&
 (\mathbf{R_A})^{-1}
@@ -3349,6 +3350,7 @@ We are interested in the derivative of $e^\E \oplus \mathbf{D} \oplus p$ w.r.t $
 \end{array}
 \right)
 \\
+\label{eq:jacob_eDp_e}
 &=& 
 \left(
 \begin{array}{cc}
@@ -3403,6 +3405,7 @@ $\mathbf{D} \in \mathbf{SE}(3)$ be a pose with associated transformation matrix:
 We are interested in the derivative of $p \ominus (e^\E \oplus \mathbf{D})$ w.r.t $\E$:
 
 \begin{eqnarray}
+\label{eq:jacob_p_min_eD_e}
 \left. \frac{\partial \mathbf{p} \ominus (e^\E \mathbf{D}) }{\partial \E} \right|_{\E = 0}
 &=& 
 \left. \frac{\partial \mathbf{p} \ominus \mathbf{A} \oplus }{\partial \mathbf{A} } \right|_{\mathbf{A}=e^\E \mathbf{D} = \mathbf{D}}
@@ -3579,6 +3582,227 @@ Then, the Jacobian of interest is:
 ~ \text{(A $3 \times 6$ Jacobian)} \nonumber
 \end{eqnarray}
 
+
+
+\appendix
+
+\chapter{Applications to computer vision}
+\label{ch:apx:cv}
+
+This appendix provides some useful expressions related to (and making use of) 
+the Jacobian derived in chapters \S\S\ref{chap:mat_deriv}--\ref{ch:se3_optim} 
+which are useful
+in computer vision applications.
+
+
+\section{Projective model of an ideal pinhole camera -- $h(\mathbf{p})$}
+
+Given a point $\mathbf{p} \in \mathbb{R}^3$ relative to a 
+projective camera, with the following convention for the axes of the 
+camera:
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.50\textwidth]{imgs/pinhole_model.eps}
+\caption{The convention used in this report on the axes of a pinhole projective camera.}
+\label{fig:pinhole}
+\end{figure}
+
+\noindent and given the $3 \times 3$ matrix of intrinsic camera parameters:
+
+\begin{equation}
+\mathbf{M}=
+\left( 
+\begin{array}{ccc}
+ f_x & 0 & c_x \\
+  0  & f_y & c_y \\
+ 0 & 0 & 1 \\
+\end{array}
+\right)
+\longrightarrow
+\left\{
+\begin{array}{l}
+ f_x\text{: Focal distance, in 'x' pixel units.} \\
+ f_y\text{: Focal distance, in 'y' pixel units.} \\
+ c_x\text{: Image central point (x, in pixel units).} \\
+ c_y\text{: Image central point (y, in pixel units).} \\
+\end{array}
+\right.
+\end{equation}
+
+
+\noindent then, the pixel coordinates $(u,v)$ of the projection of the 
+3D point $\mathbf{p}=[p_x ~ p_y ~ p_z]^\top$
+is given (\emph{without} distortions) by the function $h: \mathbb{R}^3 \mapsto \mathbb{R}^2$, 
+with the well known expression:
+
+\begin{equation}
+h(\mathbf{p}) = 
+h\left(
+\begin{array}{c}
+ p_x \\ p_y \\p_z
+\end{array}
+\right) = 
+\left(
+\begin{array}{c}
+ c_x + f_x  \frac{p_x}{p_z} \\
+ c_y + f_y  \frac{p_y}{p_z} \\
+\end{array}
+\right)
+\end{equation}
+
+In a number of computer vision problems we will need the Jacobian of this
+projection function by the coordinates of the point w.r.t. the camera, which 
+is straightforward to obtain:
+
+\begin{equation}
+\label{eq:jacob_pinhole}
+\frac{\partial h(\mathbf{p})}{\partial \mathbf{p}} = 
+\left(
+\begin{array}{ccc}
+ f_x/p_z  &    0    &  -f_x p_x/p_z^2   \\
+ 0 & f_y/p_z  &  -f_y p_y/ p_z^2   
+\end{array}
+\right)
+\end{equation}
+
+
+\section{Projection of a point: $e^\varepsilon \oplus \mathbf{A} \oplus \mathbf{p}$}
+
+Given a pose $\mathbf{A} \in \mathbf{SE}(3)$ 
+(with rotation matrix denoted as $\mathbf{R_A}$)
+and a point 
+$\mathbf{p} \in \mathbb{R}^3$
+relative to that pose, we want here to derive the Jacobians of 
+the projection of $e^\E \oplus \A \oplus \mathbf{p}$ on a pinhole camera, that is, 
+of the expression $h(e^\E \oplus \A \oplus \mathbf{p})$.
+Recall that $e^\E$ means the $\mathbf{SE}(3)$ Lie group exponentiation 
+of an auxiliary variable $\E$ which represents a small increment around $\A$ in the manifold.
+
+Let $\mathbf{g}=[g_x ~ g_y ~ g_z]^\top$ denote $\mathbf{A} \oplus \mathbf{p}$.
+Applying the chain rule of Jacobians and employing Eq.~(\ref{eq:jac_dAp_p}), 
+Eq.~(\ref{eq:jacob_eDp_e}) 
+and  Eq.~(\ref{eq:jacob_pinhole})
+we arrive at:
+
+\begin{eqnarray}
+\frac{\partial h(e^\E \oplus \A \oplus \mathbf{p})}{\partial \mathbf{p}} 
+&=& 
+\left. \frac{\partial h(\mathbf{p'})}{\partial \mathbf{p'}} \right|_{ \mathbf{p'} = \A \oplus \mathbf{p} = \mathbf{g} }
+\frac{\partial e^\E \oplus \A \oplus \mathbf{p} }{\partial \mathbf{p}} \\
+&=& 
+\left. \frac{\partial h(\mathbf{p'})}{\partial \mathbf{p'}} \right|_{ \mathbf{p'} = \A \oplus \mathbf{p} = \mathbf{g} }
+\frac{\partial \A \oplus \mathbf{p} }{\partial \mathbf{p}} \\
+&=& 
+\left(
+\begin{array}{ccc}
+ f_x / g_z   &    0    &  -f_x g_x / g_z^2   \\
+ 0 & f_y / g_z  &  -f_y g_y / g_z^2   
+\end{array}
+\right)
+\mathbf{R_A} 
+\quad\quad \text{(A $3 \times 3$ Jacobian)}
+\end{eqnarray}
+
+\noindent and:
+
+\begin{eqnarray}
+\frac{\partial h(e^\E \oplus \A \oplus \mathbf{p})}{\partial \mathbf{\E}} 
+&=& 
+\left. \frac{\partial h(\mathbf{p'})}{\partial \mathbf{p'}} \right|_{ \mathbf{p'} = \A \oplus \mathbf{p} = \mathbf{g} }
+\frac{\partial e^\E \oplus \A \oplus \mathbf{p} }{\partial \E} \\
+&=& 
+\left(
+\begin{array}{ccc}
+ f_x / g_z   &    0    &  -f_x g_x / g_z^2   \\
+ 0 & f_y / g_z  &  -f_y g_y / g_z^2   
+\end{array}
+\right)
+\left(
+\begin{array}{cc}
+ \mathbf{I}_3   & - \left[ \mathbf{g} \right]_\times
+\end{array}
+\right) \\
+&=&
+\left(
+\begin{array}{cccccc}
+ \frac{f_x}{g_z}  & 
+ 0 &
+ -f_x\frac{g_x}{g_z^2} &
+ f_x \frac{g_x g_y}{g_z^2} &
+-f_x  (1 + \frac{g_x^2}{g_z^2} )  &
+  f_x \frac{g_y}{g_z} 
+\\
+ 0 & 
+ \frac{f_y}{g_z}  & 
+ -f_y\frac{g_y}{g_z^2} 
+ &
+  f_y (1 + \frac{g_y^2}{g_z^2}) &
+  -f_y \frac{g_x g_y}{g_z^2} &
+  f_y \frac{g_x}{g_z}
+\end{array}
+\right)
+\quad\quad \text{(A $3 \times 6$ Jacobian)} \nonumber
+\end{eqnarray}
+
+
+
+\newpage
+
+\section{Projection of a point: $\mathbf{p} \ominus (e^\varepsilon \oplus \mathbf{A})$}
+
+The previous section Jacobians are applicable to optimization problems 
+where the convention is to estimate the inverse camera poses 
+(that is, the point to project, w.r.t. the camera, is $\A \oplus \mathbf{p}$).
+In this section we address the alternative case of poses being the actual 
+camera positions
+(that is, the point to project, w.r.t. the camera, is $\mathbf{p} \ominus \A$).
+
+The expression we want to obtain the Jacobians of is in this case: 
+$h(\mathbf{p} \ominus (e^\E \oplus \A))$.
+Using Eq.~(\ref{eq:jac_dp_min_p}),
+and  Eq.~(\ref{eq:jacob_pinhole}),
+%and denoting $\Delta_p=[\Delta_{px} ~ \Delta_{py} ~ \Delta_{pz}]^\top=\mathbf{p}-\mathbf{t_A}$
+and denoting $\mathbf{l}=[l_x ~ l_y ~ l_z]^\top=\mathbf{p} \ominus \A$, 
+we arrive at:
+
+\begin{eqnarray}
+\frac{\partial h(\mathbf{p} \ominus (e^\E \oplus \A) )}{\partial \mathbf{p}} 
+&=& 
+\left. \frac{\partial h(\mathbf{p'})}{\partial \mathbf{p'}} \right|_{ \mathbf{p'} = \mathbf{p} \ominus \A = \mathbf{l} }
+\frac{\partial \mathbf{p} \ominus (e^\E \oplus \A) }{\partial \mathbf{p}} \\
+&=& 
+\left. \frac{\partial h(\mathbf{p'})}{\partial \mathbf{p'}} \right|_{ \mathbf{p'} = \mathbf{p} \ominus \A = \mathbf{l} }
+\frac{\partial \mathbf{p} \ominus \A }{\partial \mathbf{p}} \\
+&=&
+\left(
+\begin{array}{ccc}
+ f_x / l_z   &    0    &  -f_x l_x / l_z^2   \\
+ 0 & f_y / l_z  &  -f_y l_y / l_z^2   
+\end{array}
+\right)
+\mathbf{R_A^\top} 
+\quad\quad \text{(A $3 \times 3$ Jacobian)}
+\end{eqnarray}
+
+\noindent and:
+
+\begin{eqnarray}
+\frac{\partial h(\mathbf{p} \ominus (e^\E \oplus \A) )}{\partial \E} 
+&=& 
+\left. \frac{\partial h(\mathbf{p'})}{\partial \mathbf{p'}} \right|_{ \mathbf{p'} = \mathbf{p} \ominus \A }
+\frac{\partial \mathbf{p} \ominus (e^\E \oplus \A) }{\partial \E} \\
+&=& 
+\left(
+\begin{array}{ccc}
+ f_x / l_z   &    0    &  -f_x l_x / l_z^2   \\
+ 0 & f_y / l_z  &  -f_y l_y / l_z^2   
+\end{array}
+\right)
+\frac{\partial \mathbf{p} \ominus (e^\E \oplus \A) }{\partial \E}
+\end{eqnarray}
+
+\noindent with this last term given by Eq.~(\ref{eq:jacob_p_min_eD_e}).
 
 
 %% ---------------------------------------------------------------
