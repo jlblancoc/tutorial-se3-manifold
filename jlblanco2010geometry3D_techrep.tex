@@ -111,7 +111,7 @@ numerical estimation of the Jacobians.
 
 \textbf{History of document versions:}
 \begin{itemize}
- \item Version 2: Added more Jacobians (\S\ref{sect:jacob_eDp}, \S\ref{sect:jacob_eDp_inv}). (6/Sep/2010)
+ \item Version 2: Added more Jacobians (\S\ref{sect:jacob_eDp}, \S\ref{sect:jacob_eDp_inv}), the Appendix \ref{ch:apx:cv} and approximation in \S\ref{eq:jacob_A_e_D_p}. (12/Sep/2010)
  \item Version 1: First version (Released 1/Sep/2010).
 \end{itemize}
 
@@ -3478,6 +3478,7 @@ When optimizing a pose $\D$ which belongs to a sequence of chained poses
 
 
 \subsection{Jacobian of $A \oplus e^\varepsilon \oplus D \oplus p$}
+\label{eq:jacob_A_e_D_p}
 
 This expression may appear in computer-vision problems, 
 such as in relative bundle-adjustment \cite{sibley2009rba}.
@@ -3512,7 +3513,7 @@ the rows and columns of $\D$ referred to as:
 
 
 Then, the Jacobian of the chained poses-point composition w.r.t. 
-the increment in the pose $\D$ (on the manifold):
+the increment in the pose $\D$ (on the manifold) is:
 
 \begin{eqnarray}
 \left. \frac{\partial \A e^\E \D \mathbf{p}}{\partial \E} \right|_{\E = 0}
@@ -3535,7 +3536,23 @@ the increment in the pose $\D$ (on the manifold):
 \text{(A $3 \times 6$ Jacobian)} \nonumber 
 \end{eqnarray}
 
-\noindent where $\mathbf{a} \cdot \mathbf{b}$ stands for the scalar product of vectors.
+\noindent where $\mathbf{a} \cdot \mathbf{b}$ stands for the scalar product of vectors. 
+Note that for both $\A$ and $\D$ being very close to the identity in $\mathbf{SE}(3)$, 
+the following approximation can be used:
+
+\begin{eqnarray}
+\left. \frac{\partial \A e^\E \D \mathbf{p}}{\partial \E} \right|_{\E = 0}
+& \approx &
+\left(
+\begin{array}{cc}
+  \I_3 & 
+  -\left[ \mathbf{p} + \mathbf{d_t} \right]_\times
+\end{array}
+\right)
+\quad \quad \quad 
+\text{(A $3 \times 6$ Jacobian)} \nonumber 
+\end{eqnarray}
+
 
 
 
