@@ -37,6 +37,7 @@
 \newcommand{\B}{{\mathbf{B}}}  
 \newcommand{\D}{{\mathbf{D}}}  
 \newcommand{\I}{{\mathbf{I}}}  
+\newcommand{\R}{{\mathbf{R}}}  
 
 \newcommand{\DEL}{{\bm{\delta}}}  
 
@@ -111,7 +112,8 @@ numerical estimation of the Jacobians.
 
 \textbf{History of document versions:}
 \begin{itemize}
- \item Version 2: Added more Jacobians (\S\ref{sect:jacob_eDp}, \S\ref{sect:jacob_eDp_inv}), the Appendix \ref{ch:apx:cv} and approximation in \S\ref{eq:jacob_A_e_D_p}. (12/Sep/2010)
+ \item Version 2: Added more Jacobians (\S\ref{sect:jacob_eDp}, \S\ref{sect:jacob_eDp_inv}, \S\ref{sect:jacob_De}), 
+         the Appendix \ref{ch:apx:cv} and approximation in \S\ref{eq:jacob_A_e_D_p}. (12/Sep/2010)
  \item Version 1: First version (Released 1/Sep/2010).
 \end{itemize}
 
@@ -2319,6 +2321,7 @@ as when dealing with optimization problems -- see \S\ref{chap:se3_lie:deriv}.
 
 
 \subsection{Pose-pose composition}
+\label{sect:jacob_pose_pose_comp}
 
 Let $f_\oplus: \mathbf{SE}(3) \times \mathbf{SE}(3) \mapsto \mathbf{SE}(3)$ denote 
 the pose composition operation, 
@@ -2914,8 +2917,15 @@ The map:
 \end{eqnarray}
 
 \noindent is well-defined, surjective, and is the inverse of the $\exp$ function defined above. 
-It corresponds to the logarithm of the $3\times 3$ rotation matrices.
+It corresponds to the logarithm of the $3\times 3$ rotation matrices \cite{altafini2000cas}:
 
+
+\begin{eqnarray}
+\label{eq:rodrigues_ln}
+ \ln(\mathbf{R}) = \W &=& \frac{\theta}{2\sin \theta} \left( \mathbf{R} - \mathbf{R}^\top \right)
+\\
+\cos \theta &=& \frac{tr(R)-1}{2}  \nonumber
+\end{eqnarray}
 
 
 \subsection{For $\mathbf{SE}(3)$}
@@ -2979,12 +2989,28 @@ defined in Eq.(\ref{eq:rodrigues}).
 
 The map:
 
-\begin{equation}
-  \ln: \mathbf{SE}(3) \mapsto \mathfrak{se}(3)
-\end{equation}
+\begin{eqnarray}
+  \ln: \mathbf{SE}(3) &\mapsto& \mathfrak{se}(3) \\
+  \mathbf{A}(\mathbf{v})  & \mapsto & \mathbf{v}
+\nonumber
+\end{eqnarray}
 
-\noindent is well-defined, surjective, and is the inverse of the $\exp$ function defined above. 
-It corresponds to the logarithm of the $4\times 4$ transformation matrices.
+\noindent is well-defined and can be computed as \cite{wang2008nps}:
+
+\begin{eqnarray}
+\label{eq:rodrigues_ln_se3}
+ \ln 
+\left(
+\begin{array}{c|c}
+\R & \mathbf{t} \\
+0 & 0
+\end{array}
+\right)
+= 
+\mathbf{R}) = \W &=& \frac{\theta}{2\sin \theta} \left( \mathbf{R} - \mathbf{R}^\top \right)
+\\
+\cos \theta &=& \frac{tr(R)-1}{2}  \nonumber
+\end{eqnarray}
 
 
 
@@ -3213,6 +3239,7 @@ for matrix derivatives explained in \S\ref{chap:mat_deriv}
 
 
 \subsection{Jacobian of the SE(3) exponential generator}
+\label{sect:jacob_se3_gen}
 
 This is the most basic Jacobian, since the term $e^\E$ appears in all 
 the on-manifold optimization problems. 
@@ -3248,7 +3275,7 @@ those in \S\ref{chap:mat_deriv} and the chain rule.
 
 
 \subsection{Jacobian of $e^\varepsilon \oplus D$}
-\label{sect:jacob_eD}, 
+\label{sect:jacob_eD}
 
 Let $\mathbf{D} \in \mathbf{SE}(3)$ be a pose with associated transformation matrix:
 
@@ -3289,8 +3316,70 @@ we are interested in the derivative of $e^\E \oplus \mathbf{D}$ w.r.t $\E$:
 \quad\quad\quad \text{(A $12 \times 6$ Jacobian)}
 \end{eqnarray}
 
-
 \newpage
+
+\subsection{Jacobian of $D \oplus e^\varepsilon$}
+\label{sect:jacob_De}
+
+Let $\mathbf{D} \in \mathbf{SE}(3)$ be a pose with associated transformation matrix:
+
+\begin{equation}
+\mathbf{T}(\mathbf{D}) = 
+\left(
+\begin{array}{ccc|c}
+ \mathbf{d_{c1}}  & \mathbf{d_{c2}}  & \mathbf{d_{c3}}  & \mathbf{d_{t}}  \\
+\hline
+  0 & 0 & 0 & 1
+\end{array}
+\right) 
+= 
+\left(
+\begin{array}{c|c}
+ \mathbf{R}(D) & \mathbf{d_{t}} \\
+\hline
+     0 & 1
+\end{array}
+\right)
+\end{equation}
+
+
+We are here interested in the derivative of $\mathbf{D} \oplus e^\E$ w.r.t $\E$, 
+which can be obtained from the results of \S\ref{sect:jacob_pose_pose_comp} and \S\ref{sect:jacob_se3_gen}):
+
+\begin{eqnarray}
+\left. \frac{\partial \mathbf{D e^\E}}{\partial \E} \right|_{\E = 0}
+&=& 
+\left. \frac{\partial \mathbf{A} \mathbf{B}}{\partial \mathbf{B} } \right|_{\mathbf{A}=\mathbf{D}, \mathbf{B}=\mathbf{I_4}}
+\left. \frac{\partial e^\E}{\partial \E} \right|_{\E=0}
+\\
+&=& 
+\left[ \mathbf{I}_4 \otimes \mathbf{R}(\mathbf{D}) \right] 
+\left(
+\begin{array}{cc}
+ \mathbf{0}_{3\times 3}  & -[\mathbf{e_1}]_\times \\
+ \mathbf{0}_{3\times 3}  & -[\mathbf{e_2}]_\times \\
+ \mathbf{0}_{3\times 3}  & -[\mathbf{e_3}]_\times \\
+ \mathbf{I}_{3}  & \mathbf{0}_{3\times 3} \\
+\end{array}
+\right)
+\\
+&=& 
+\left(
+\begin{array}{c|ccc}
+  ~  &  0_{3\times 1}  & -\mathbf{d_{c3}} & \mathbf{d_{c2}} \\
+  0_{9\times 3}
+     & \mathbf{d_{c3}} & 0_{3\times 1} & -\mathbf{d_{c1}} \\
+  ~  &  -\mathbf{d_{c2}} & \mathbf{d_{c1}} & 0_{3\times 1} \\
+\hline
+  \mathbf{R}(\mathbf{D})   & ~ & 0_{3 \times 3} & 
+\end{array}
+\right)
+\quad\quad \text{(A $12 \times 6$ Jacobian)}
+\end{eqnarray}
+
+
+
+%\newpage
 \subsection{Jacobian of $e^\varepsilon \oplus D \oplus p$}
 \label{sect:jacob_eDp}
 
