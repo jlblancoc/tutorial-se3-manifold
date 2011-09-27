@@ -2922,12 +2922,14 @@ The map:
 \end{eqnarray}
 
 \noindent is well-defined, surjective, and is the inverse of the $\exp$ function defined above. 
-It corresponds to the logarithm of the $3\times 3$ rotation matrices \cite{altafini2000cas}:
+It corresponds to the logarithm of the $3\times 3$ rotation matrices, and is given by the
+well-known Rodrigues' rotation formula \cite{altafini2000cas}:
 
 
 \begin{eqnarray}
 \label{eq:rodrigues_ln}
- \ln(\mathbf{R}) = \W &=& \frac{\theta}{2\sin \theta} \left( \mathbf{R} - \mathbf{R}^\top \right)
+ \ln(\mathbf{R}) = \W &=& \frac{1}{2\sin \theta} \left( \mathbf{R} - \mathbf{R}^\top
+\right)
 \\
 \cos \theta &=& \frac{tr(R)-1}{2}  \nonumber
 \end{eqnarray}
