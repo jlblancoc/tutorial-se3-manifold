@@ -111,8 +111,8 @@ numerical estimation of the Jacobians.
 
 \textbf{History of document versions:}
 \begin{itemize}
- \item Version 3: Added the explicit formulas for the logarithm map of SO(3) and SE(3)
-   . (???/2011)
+ \item Version 3: Added the explicit formulas for the logarithm map of SO(3) and SE(3), 
+    fixed error in Eq.~(\ref{eq:jacob_p_min_eD_e}) (???/2012)
 
  \item Version 2: Added more Jacobians (\S\ref{sect:jacob_eDp},
 \S\ref{sect:jacob_eDp_inv}, \S\ref{sect:jacob_De}), 
@@ -1434,11 +1434,9 @@ relative to $\mathbf{p_7}$, that is, $\mathbf{a'} = \mathbf{a} \ominus \mathbf{p
 \label{eq:fqri}
 \mathbf{a'} = \mathbf{f_{qri}}( \mathbf{a}, \mathbf{p_7} ) =
 \left(\begin{array}{c}
-%-
  (a_x-x) + 2 \left[-(q_y^2+ q_z^2) (a_x-x) +(q_x q_y - q_r q_z) (a_y-y)+(q_r q_y+q_x q_z) (a_z-z) \right]  \\
  (a_y-y) + 2 \left[(q_r q_z+  q_x q_y) (a_x-x)-(q_x^2 +q_z^2) (a_y-y)+(q_y q_z-q_r q_x) (a_z-z) \right] \\
  (a_z-z) + 2 \left[(q_x q_z-  q_r q_y) (a_x-x)+(q_r q_x + q_y q_z) (a_y-y)-(q_x^2+q_y^2) (a_z-z) \right]  \\
-%-
 \end{array}\right) 
 \end{eqnarray}
 
@@ -1492,7 +1490,7 @@ cov(\mathbf{a})  ~
 \end{eqnarray}
 
 \noindent and, if we define 
-$\Delta x = (a_x - x)$, $\Delta y = (a_x - x)$ and $\Delta z = (a_z - z)$, we can 
+$\Delta x = (a_x - x)$, $\Delta y = (a_y - y)$ and $\Delta z = (a_z - z)$, we can 
 write the Jacobian with respect to the pose as:
 
 \begin{eqnarray}
@@ -2923,7 +2921,7 @@ The map:
 
 \noindent is well-defined, surjective, and is the inverse of the $\exp$ function defined above. 
 It corresponds to the logarithm of the $3\times 3$ rotation matrices, and is given by the
-well-known Rodrigues' rotation formula \cite{altafini2000cas}:
+well-known Rodrigues rotation formula \cite{altafini2000cas}:
 
 
 \begin{eqnarray}
@@ -3504,7 +3502,7 @@ We are interested in the derivative of $p \ominus (e^\E \oplus \mathbf{D})$ w.r.
 \label{eq:jacob_p_min_eD_e}
 \left. \frac{\partial \mathbf{p} \ominus (e^\E \mathbf{D}) }{\partial \E} \right|_{\E = 0}
 &=& 
-\left. \frac{\partial \mathbf{p} \ominus \mathbf{A} \oplus }{\partial \mathbf{A} } \right|_{\mathbf{A}=e^\E \mathbf{D} = \mathbf{D}}
+\left. \frac{\partial \mathbf{p} \ominus \mathbf{A} }{\partial \mathbf{A} } \right|_{\mathbf{A}=e^\E \mathbf{D} = \mathbf{D}}
 \left. \frac{\partial e^\E \mathbf{D}}{\partial \E} \right|_{\E=0}
 \nonumber \\
 &=&
@@ -3524,21 +3522,26 @@ We are interested in the derivative of $p \ominus (e^\E \oplus \mathbf{D})$ w.r.
 \end{array}
 \right) 
 \quad\quad \text{\scriptsize{(Using Eq.(\ref{eq:jac_dp_min_A})  \& \S\ref{sect:jacob_eD}} )}
-\\
+\nonumber \\
 &=& 
-\tiny{\left(
+\left(
 \begin{array}{cc}
    -\mathbf{R_D}^\top &
   \begin{array}{ccc}
-  d_{tz} d_{21} - d_{ty} d_{31} + d_{21} p_z - d_{31} p_y & d_{tx} d_{31} - d_{tz} d_{11} - d_{11} p_z + d_{31} p_x & d_{ty} d_{11} - d_{tx} d_{21} + d_{11} p_y - d_{21} p_x \\
-  d_{tz} d_{22} - d_{ty} d_{32} + d_{22} p_z - d_{32} p_y & d_{tx} d_{32} - d_{tz} d_{12} - d_{12} p_z + d_{32} p_x & d_{ty} d_{12} - d_{tx} d_{22} + d_{12} p_y - d_{22} p_x \\
-  d_{tz} d_{23} - d_{ty} d_{33} + d_{23} p_z - d_{33} p_y & d_{tx} d_{33} - d_{tz} d_{13} - d_{13} p_z + d_{33} p_x & d_{ty} d_{13} - d_{tx} d_{23} + d_{13} p_y - d_{23} p_x \\
+  d_{21} p_z - d_{31} p_y & - d_{11} p_z + d_{31} p_x & d_{11} p_y - d_{21} p_x \\
+  d_{22} p_z - d_{32} p_y & - d_{12} p_z + d_{32} p_x & d_{12} p_y - d_{22} p_x \\
+  d_{23} p_z - d_{33} p_y & - d_{13} p_z + d_{33} p_x & d_{13} p_y - d_{23} p_x \\
   \end{array}
 \end{array}
-\right)} \nonumber \\
+\right) \\
  && \quad\quad \quad\quad\quad \text{(A $3 \times 6$ Jacobian)} \nonumber
 \end{eqnarray}
 
+% From MATLAB:
+% [ -d11, -d21, -d31,  d21*pz - d31*py, d31*px - d11*pz, d11*py - d21*px]
+% [ -d12, -d22, -d32,  d22*pz - d32*py, d32*px - d12*pz, d12*py - d22*px]
+% [ -d13, -d23, -d33,  d23*pz - d33*py, d33*px - d13*pz, d13*py - d23*px]
+ 
 
 
 \subsection{Jacobian of $A \oplus e^\varepsilon \oplus D$}
