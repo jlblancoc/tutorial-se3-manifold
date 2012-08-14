@@ -78,7 +78,7 @@
 of M\'alaga, Spain}
 
 \TRInfo{A tutorial on $\mathbf{SE}(3)$ transformation parameterizations and on-manifold optimization}
-{Jose-Luis Blanco\\ \texttt{joseluisblancoc@gmail.com}}
+{Jose-Luis Blanco\\ \begin{small} \texttt{joseluisblancoc@gmail.com} \\ \texttt{http://sites.google.com/site/jlblancosite/} \end{small} }
 {MAPIR Group}{}{012010}{Date: \ddmmyyyydate \today }
 \PageStyle
 
@@ -112,7 +112,9 @@ numerical estimation of the Jacobians.
 \textbf{History of document versions:}
 \begin{itemize}
  \item Version 3: Added the explicit formulas for the logarithm map of SO(3) and SE(3), 
-    fixed error in Eq.~(\ref{eq:jacob_p_min_eD_e}) (???/2012)
+    fixed error in Eq.~(\ref{eq:jacob_p_min_eD_e}), explained the equivalence between the yaw-pitch-roll 
+and roll-pitch-yaw forms and introduction of the $\left[ \ln \mathbf{R} \right]_\triangledown$ notation 
+when discussing the logarithm maps (14/Aug/2012)
 
  \item Version 2: Added more Jacobians (\S\ref{sect:jacob_eDp},
 \S\ref{sect:jacob_eDp_inv}, \S\ref{sect:jacob_De}), 
@@ -121,6 +123,14 @@ numerical estimation of the Jacobians.
 
  \item Version 1: First version (Released 1/Sep/2010).
 \end{itemize}
+
+
+
+\vspace{3cm}
+\textbf{Notice:} \\
+
+Part of this report was also published within chapter 10 and appendix IV of the
+book \cite{fernandez2012igi-book}.
 
 
 \newpage
@@ -338,8 +348,13 @@ the one employed here is the one most commonly used in robotics.
 
 Note that the overall rotation is represented as a sequence of three individual rotations, 
 each taking a different axis of rotation. 
-In particular, the order is: yaw around Z axis, then pitch around the modified Y axis, 
-then roll around the modified X axis.
+In particular, the order is: yaw around the Z axis, then pitch around the \emph{modified} Y axis, 
+then roll around the \emph{modified} X axis. It is also common to find in the literature 
+the roll-pitch-yaw (RPY) parameterization (versus YPR), where rotations apply over the same angles (e.g. yaw 
+around the Z axis) but in inverse order and around the \emph{unmodified} axes instead of 
+the successively modified axes of the yaw-pitch-roll form. In any case, it can be shown that 
+the numeric values of the three rotations are identical for any given 3D rotation \cite{fernandez2012igi-book}, 
+thus both forms are completely equivalent.
 
 This representation is the most compact since it only requires 6 real parameters
 to describe a pose (the minimum number of parameters, since a pose has 6 degrees of freedom).
@@ -2799,7 +2814,12 @@ infinitesimal rotations along each axis:
 \\
 \end{eqnarray}
 
-\noindent where the skew-symmetric matrix operator $[\cdot]_\times$ is defined as:
+Notice that this means that an arbitrary element in $\mathfrak{so}(3)$ 
+has three coordinates (each coordinate multiplies a generator 
+matrix $\{  \mathbf{G^{\mathfrak{so}(3)}_1}, \mathbf{G^{\mathfrak{so}(3)}_2}, \mathbf{G^{\mathfrak{so}(3)}_3} \}$) so it can 
+be represented as a vector in $\mathbb{R}^3$.
+
+We have introduced above the skew-symmetric matrix operator $[\cdot]_\times$, which is defined as:
 
 \begin{equation}
 \label{eq:skew}
@@ -2814,10 +2834,22 @@ z & 0 & -x  \\
 \right)
 \end{equation}
 
-Notice that this means that an arbitrary element in $\mathfrak{so}(3)$ 
-has three coordinates (each coordinate multiplies a generator 
-matrix $\{  \mathbf{G^{\mathfrak{so}(3)}_1}, \mathbf{G^{\mathfrak{so}(3)}_2}, \mathbf{G^{\mathfrak{so}(3)}_3} \}$) so it can 
-be represented as a vector in $\mathbb{R}^3$.
+\noindent whose inverse operation will be denoted in the following as $\left[ \cdot \right] _\triangledown$:
+
+\begin{equation}
+\label{eq:inv.skew}
+\left[ \left(
+\begin{array}{ccc}
+0 & -z & y  \\
+z & 0 & -x  \\
+-y & x & 0  
+\end{array}
+\right) \right]
+_\triangledown
+=
+\left[ \begin{array}{c} x \\ y \\z \end{array} \right]
+\end{equation}
+
 
 
 \section{Lie algebra of $\mathbf{SE}(3)$}
@@ -2926,10 +2958,12 @@ well-known Rodrigues rotation formula \cite{altafini2000cas}:
 
 \begin{eqnarray}
 \label{eq:rodrigues_ln}
- \ln(\mathbf{R}) = \W &=& \frac{1}{2\sin \theta} \left( \mathbf{R} - \mathbf{R}^\top
+ \ln(\mathbf{R}) &=& \frac{1}{2\sin \theta} \left( \mathbf{R} - \mathbf{R}^\top
 \right)
-\\
-\cos \theta &=& \frac{tr(R)-1}{2}  \nonumber
+\nonumber \\
+\cos \theta &=& \frac{tr(R)-1}{2}  \nonumber \\
+\label{eq:log_so3}
+ \W &=& \left[ \ln(\mathbf{R}) \right]_\triangledown 
 \end{eqnarray}
 
 
@@ -2980,6 +3014,7 @@ Then, the map:
 \end{array}
 \right)
 \\
+\label{eq:V_exp}
 \mathbf{V} = \mathbf{I_3}
 + \frac{1-\cos \theta}{\theta^2} [\W]_\times 
 + \frac{\theta- \sin \theta}{\theta^3} [\W]^2_\times
@@ -3004,19 +3039,26 @@ The map:
 
 \begin{eqnarray}
 \label{eq:rodrigues_ln_se3}
- \ln 
+\mathbf{v} &=& 
 \left(
-\begin{array}{c|c}
-\R & \mathbf{t} \\
-0 & 0
+\begin{array}{c}
+ \mathbf{t}' \\ \hline \W
 \end{array}
 \right)
-= 
-\mathbf{R}) = \W &=& \frac{\theta}{2\sin \theta} \left( \mathbf{R} - \mathbf{R}^\top \right)
+=
+\left(
+\begin{array}{c}
+ x'\\y'\\z' \\ \hline \omega_1 \\ \omega_2 \\ \omega_3
+\end{array}
+\right)
+\nonumber \\
+\W &=& \left[ \ln \mathbf{R} \right]_\triangledown  \quad \quad \text{(see Eq.~\ref{eq:log_so3})}
 \\
-\cos \theta &=& \frac{tr(R)-1}{2}  \nonumber
+\mathbf{t}' &=& \mathbf{V}^{-1} \mathbf{t} \quad \quad \text{(with $\mathbf{V}$ in Eq.~\ref{eq:V_exp})} 
 \end{eqnarray}
 
+\noindent where $\mathbf{R}$ and $\mathbf{t}$ are the $3 \times 3$ rotation matrix 
+and translational part of the $\mathbf{SE}(3)$ pose.
 
 
 \subsection{Implementation in MRPT}
