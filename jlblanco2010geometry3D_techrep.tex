@@ -78,8 +78,8 @@
 of M\'alaga, Spain}
 
 \TRInfo{A tutorial on $\mathbf{SE}(3)$ transformation parameterizations and on-manifold optimization}
-{Jose-Luis Blanco\\ \begin{small} \texttt{joseluisblancoc@gmail.com} \\ \texttt{http://sites.google.com/site/jlblancosite/} \end{small} }
-{MAPIR Group}{}{012010}{Date: \ddmmyyyydate \today }
+{Jose-Luis Blanco\\ \begin{small} \texttt{joseluisblancoc@gmail.com} \\ \texttt{http://www.ual.es/personal/jlblanco/} \end{small} }
+{MAPIR Group}{}{012010}{Last update: \ddmmyyyydate \today }
 \PageStyle
 
 %\maketitle
@@ -111,6 +111,8 @@ numerical estimation of the Jacobians.
 
 \textbf{History of document versions:}
 \begin{itemize}
+ \item Version 5: Fixed a typo in Eq.~\ref{eq:rodrigues_ln} (21/Oct/2014) (Thanks to Tanner Schmidt for reporting)
+	
  \item Version 4: Added formulas for the Jacobian of the SO(3) logarithm map, in \S\ref{sect:eq:jacob_dLnROT_dROT} (9/May/2013)
 
  \item Version 3: Added the explicit formulas for the logarithm map of SO(3) and SE(3), 
@@ -2961,7 +2963,7 @@ well-known Rodrigues rotation formula \cite{altafini2000cas}:
 
 \begin{eqnarray}
 \label{eq:rodrigues_ln}
- \ln(\mathbf{R}) &=& \frac{1}{2\sin \theta} \left( \mathbf{R} - \mathbf{R}^\top
+ \ln(\mathbf{R}) &=& \frac{\theta}{2\sin \theta} \left( \mathbf{R} - \mathbf{R}^\top
 \right)
 \nonumber \\
 \cos \theta &=& \frac{tr(R)-1}{2}  \nonumber \\
