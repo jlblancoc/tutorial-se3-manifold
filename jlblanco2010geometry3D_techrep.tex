@@ -78,7 +78,7 @@
 of M\'alaga, Spain}
 
 \TRInfo{A tutorial on $\mathbf{SE}(3)$ transformation parameterizations and on-manifold optimization}
-{Jose-Luis Blanco\\ \begin{small} \texttt{joseluisblancoc@gmail.com} \\ \texttt{http://www.ual.es/personal/jlblanco/} \end{small} }
+{Jose-Luis Blanco\\ \begin{small} \texttt{jlblanco@ual.es} \\ \texttt{http://www.ual.es/personal/jlblanco/} \end{small} }
 {MAPIR Group}{}{012010}{Last update: \ddmmyyyydate \today }
 \PageStyle
 
@@ -111,6 +111,8 @@ numerical estimation of the Jacobians.
 
 \textbf{History of document versions:}
 \begin{itemize}
+ \item Version 6: Fixed a few typos in matrix size legends (8/Dec/2015)
+ 
  \item Version 5: Fixed a typo in Eq.~\ref{eq:rodrigues_ln} (21/Oct/2014) (Thanks to Tanner Schmidt for reporting)
 	
  \item Version 4: Added formulas for the Jacobian of the SO(3) logarithm map, in \S\ref{sect:eq:jacob_dLnROT_dROT} (9/May/2013)
@@ -2420,7 +2422,7 @@ Its derivative can be shown to be:
 \frac{\partial \left( \mathbf{T_A} ^{-1} \right) }{\partial \mathbf{T_A} } &=& 
 \left(
 \begin{array}{cc}
- \mathbf{T_{3,3}} & \mathbf{0}_{3 \times 9} \\
+ \mathbf{T_{3,3}} & \mathbf{0}_{9 \times 3} \\
  \mathbf{I_3} \otimes (-\mathbf{t_A}^\top) & - \mathbf{R_A}^\top
 \end{array}
 \right)
@@ -3112,10 +3114,8 @@ the previous chapters \S\S\ref{chap:mat_deriv}--\ref{chap:se3_lie},
 in this chapter we focus on the ultimate goal of all that theoretical 
 dissertation: being able to solve practical numerical 
 problems that involve
-estimating $\mathbf{SE}(3)$ poses.
-
-
-TODO: Cite \cite{gabay1982mdf}
+estimating $\mathbf{SE}(3)$ poses. 
+It is noteworthy that this problem was already addressed back in 1982 in \cite{gabay1982mdf} for the general case of differential manifolds.
 
 
 \section{Optimization solutions are made for flat Euclidean spaces}
@@ -3946,7 +3946,7 @@ we arrive at:
 \end{array}
 \right)
 \mathbf{R_A} 
-\quad\quad \text{(A $3 \times 3$ Jacobian)}
+\quad\quad \text{(A $2 \times 3$ Jacobian)}
 \end{eqnarray}
 
 \noindent and:
@@ -3987,7 +3987,7 @@ we arrive at:
   f_y \frac{g_x}{g_z}
 \end{array}
 \right)
-\quad\quad \text{(A $3 \times 6$ Jacobian)} \nonumber
+\quad\quad \text{(A $2 \times 6$ Jacobian)} \nonumber
 \end{eqnarray}
 
 
