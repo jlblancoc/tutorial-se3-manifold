@@ -111,6 +111,8 @@ numerical estimation of the Jacobians.
 
 \textbf{History of document versions:}
 \begin{itemize}
+ \item Version 7: C++ code excerpts updated to MRPT 1.3.0 or newer (18/Oct/2016)
+
  \item Version 6: Fixed a few typos in matrix size legends (8/Dec/2015)
  
  \item Version 5: Fixed a typo in Eq.~\ref{eq:rodrigues_ln} (21/Oct/2014) (Thanks to Tanner Schmidt for reporting)
@@ -386,8 +388,9 @@ special cases, as will be seen in some of the transformations described later on
 Poses based on yaw-pitch-roll angles are implemented in the C++ class \texttt{mrpt::poses::CPose3D}:
 
 \begin{lstlisting}
-#include <mrpt/base.h> 
+#include <mrpt/poses/CPose3D.h> 
 using namespace mrpt::poses; 
+using mrpt::utils::DEG2RAD; 
 
 CPose3D   p(1.0 /* x */,2.0 /* y */,3.0 /* z */, 
             DEG2RAD(30.0) /* yaw */, DEG2RAD(20.0) /* pitch */, DEG2RAD(90.0) /* roll */ );
@@ -438,7 +441,7 @@ Poses based on quaternions are implemented in the class \texttt{mrpt::poses::CPo
 The quaternion part of the pose is always normalized (i.e. $q_r^2+q_x^2+q_y^2+q_z^2=1$).
 
 \begin{lstlisting}
-#include <mrpt/base.h> 
+#include <mrpt/poses/CPose3DQuat.h> 
 using namespace mrpt::poses; 
 using namespace mrpt::math; 
 
@@ -528,7 +531,7 @@ extra dimension to each point which will be always equal to the unity -- example
 Transformation matrices themselves can be managed as any other normal $4\times 4$ matrix:
 
 \begin{lstlisting}
-#include <mrpt/base.h> 
+#include <mrpt/utils/types_math.h>
 using namespace mrpt::math; 
 
 CMatrixDouble44  P;
@@ -603,12 +606,13 @@ into another of type \texttt{CPose3DQuat} based on quaternions can be done trans
 due the existence of an implicit conversion constructor:
 
 \begin{lstlisting}
-#include <mrpt/base.h> 
+#include <mrpt/poses/CPose3D.h> 
+#include <mrpt/poses/CPose3DQuat.h> 
 using namespace mrpt::poses; 
 
 CPose3D  p6;
 ...
-CPose3DQuat   p7 = p6;  // Transparent conversion
+CPose3DQuat   p7 = CPose3DQuat(p6);  // Transparent conversion
 \end{lstlisting}
 
 
@@ -667,7 +671,8 @@ Transforming between them is possible via an explicit transform constructor, whi
 converts both the mean and the covariance matrix:
 
 \begin{lstlisting}
-#include <mrpt/base.h> 
+#include <mrpt/poses/CPose3DPDFGaussian.h> 
+#include <mrpt/poses/CPose3DQuatPDFGaussian.h> 
 using namespace mrpt::poses; 
 
 CPose3DPDFGaussian     p6( p6_mean, p6_cov ); 
@@ -735,14 +740,14 @@ Transforming a 6D pose from a quaternion to a yaw-pitch-roll representation is
 achieved transparently via an implicit transform constructor:
 
 \begin{lstlisting}
-#include <mrpt/base.h> 
+#include <mrpt/poses/CPose3D.h> 
+#include <mrpt/poses/CPose3DQuat.h> 
 using namespace mrpt::poses; 
 
 CPose3DQuat   p7;
 ...
-CPose3D       p6 = p7;  // Transparent transformation
+CPose3D       p6 = p7;  // Transformation
 \end{lstlisting}
-
 
 
 \subsection{Uncertainty}
@@ -797,8 +802,10 @@ $\chi=-90^\circ$ and $|\chi| \neq 90^\circ$.
 This conversion can be achieved by means of an explicit transform constructor, as shown below:
 
 \begin{lstlisting}
-#include <mrpt/base.h> 
+#include <mrpt/poses/CPose3DQuat.h> 
+#include <mrpt/poses/CPose3DQuatPDFGaussian.h> 
 using namespace mrpt::poses; 
+using namespace mrpt::math; 
 
 CPose3DQuat            p7_mean = ...
 CMatrixDouble77        p7_cov  = ...
@@ -900,7 +907,7 @@ The transformation matrix of any yaw-pitch-roll-based 6D pose stored in a
 \texttt{CPose3D} class can be obtained as follows:
 
 \begin{lstlisting}
-#include <mrpt/base.h> 
+#include <mrpt/poses/CPose3D.h> 
 using namespace mrpt::math; 
 using namespace mrpt::poses; 
 
@@ -936,7 +943,7 @@ In this case the interface of \texttt{CPose3DQuat} is exactly identical to that
 of the yaw-pitch-roll form, that is:
 
 \begin{lstlisting}
-#include <mrpt/base.h> 
+#include <mrpt/poses/CPose3DQuat.h> 
 using namespace mrpt::math; 
 using namespace mrpt::poses; 
 
@@ -1039,7 +1046,7 @@ Given a matrix \texttt{M}, the \texttt{CPose3D} representation can be obtained v
 an explicit transform constructor:
 
 \begin{lstlisting}
-#include <mrpt/base.h> 
+#include <mrpt/poses/CPose3D.h> 
 using namespace mrpt::math; 
 using namespace mrpt::poses; 
 
@@ -1068,7 +1075,7 @@ Given a matrix \texttt{M}, the \texttt{CPose3DQuat} representation can be obtain
 an explicit transform constructor:
 
 \begin{lstlisting}
-#include <mrpt/base.h> 
+#include <mrpt/poses/CPose3DQuat.h> 
 using namespace mrpt::math; 
 using namespace mrpt::poses; 
 
@@ -1103,7 +1110,8 @@ as described in \S \ref{sect:comp_point:mat}.
 A pose-point composition can be evaluated by means of:
 
 \begin{lstlisting}
-#include <mrpt/base.h> 
+#include <mrpt/poses/CPose3D.h> 
+#include <mrpt/math/lightweight_geom_data.h>
 using namespace mrpt::poses; 
 using namespace mrpt::math; 
 
@@ -1220,7 +1228,7 @@ There is not a direct method to implement a pose-point composition with uncertai
 but the two required Jacobians can be obtained from the method \texttt{composePoint()}:
 
 \begin{lstlisting}
-#include <mrpt/base.h> 
+#include <mrpt/poses/CPose3D.h> 
 using namespace mrpt::poses; 
 using namespace mrpt::math; 
 
@@ -1265,7 +1273,8 @@ The solution is given by:
 A pose-point composition can be evaluated by means of:
 
 \begin{lstlisting}
-#include <mrpt/base.h> 
+#include <mrpt/poses/CPose3D.h> 
+#include <mrpt/math/lightweight_geom_data.h>
 using namespace mrpt::poses; 
 using namespace mrpt::math; 
 
@@ -1361,7 +1370,8 @@ There is not a direct method to implement a pose-point composition with uncertai
 but the two required Jacobians can be obtained from the method \texttt{composePoint()}:
 
 \begin{lstlisting}
-#include <mrpt/base.h> 
+#include <mrpt/poses/CPose3DQuat.h> 
+#include <mrpt/math/CMatrixFixedNumeric.h>
 using namespace mrpt::poses; 
 using namespace mrpt::math; 
 
@@ -1423,7 +1433,8 @@ Given a 6D-pose as an object of type \texttt{CPose3D}, one can invoke its method
 \texttt{inverseComposePoint()} which, in one of its signatures, reads:
 
 \begin{lstlisting}
-#include <mrpt/base.h> 
+#include <mrpt/poses/CPose3D.h> 
+#include <mrpt/math/lightweight_geom_data.h>
 using namespace mrpt::poses; 
 using namespace mrpt::math; 
 
@@ -1468,7 +1479,8 @@ Given a 7D-pose as an object of type \texttt{CPose3DQuat}, one can invoke its me
 \texttt{inverseComposePoint()} which, in one of its signatures, reads:
 
 \begin{lstlisting}
-#include <mrpt/base.h> 
+#include <mrpt/poses/CPose3DQuat.h> 
+#include <mrpt/math/lightweight_geom_data.h>
 using namespace mrpt::poses; 
 using namespace mrpt::math; 
 
@@ -1559,7 +1571,8 @@ As in the previous case, here we it can be also employed the method
 will return the desired Jacobians:
 
 \begin{lstlisting}
-#include <mrpt/base.h> 
+#include <mrpt/poses/CPose3DQuat.h> 
+#include <mrpt/math/lightweight_geom_data.h>
 using namespace mrpt::poses; 
 using namespace mrpt::math; 
 
@@ -1668,7 +1681,7 @@ such as composing can be simply
 writen down as:
 
 \begin{lstlisting}
-#include <mrpt/base.h> 
+#include <mrpt/poses/CPose3D.h> 
 using namespace mrpt::poses; 
 
 CPose3D  p1,p2; 
@@ -1773,7 +1786,7 @@ Eq.(\ref{eq:jac_p6_p7}), Eq.(\ref{eq:jacob_f_qc}) and Eq.(\ref{eq:jac_p7_p6}), r
 The composition is easily performed via an overloaded ``+'' operator, as can be seen in this code:
 
 \begin{lstlisting}
-#include <mrpt/base.h> 
+#include <mrpt/poses/CPose3DPDFGaussian.h> 
 using namespace mrpt::poses; 
 
 CPose3DPDFGaussian p6a( p6_mean_a, p6_cov_a ); 
@@ -1827,7 +1840,7 @@ of the ``\texttt{+}'' operator, such as composing can be simply
 writen down as:
 
 \begin{lstlisting}
-#include <mrpt/base.h> 
+#include <mrpt/poses/CPose3DQuat.h> 
 using namespace mrpt::poses; 
 
 CPose3DQuat  p1,p2; 
@@ -1919,7 +1932,7 @@ in \S \ref{sect:quat:norm}.
 The composition is easily performed via an overloaded ``+'' operator:
 
 \begin{lstlisting}
-#include <mrpt/base.h> 
+#include <mrpt/poses/CPose3DQuatPDFGaussian.h> 
 using namespace mrpt::poses; 
 
 CPose3DQuatPDFGaussian     p7a( p7_mean_a, p7_cov_a ); 
@@ -1952,8 +1965,8 @@ simply as:
 In this case, operate just like with ordinary matrices:
 
 \begin{lstlisting}
-#include <mrpt/base.h> 
-using namespace mrpt::poses; 
+#include <mrpt/math/lightweight_geom_data.h>
+using namespace mrpt::math; 
 
 CMatrixDouble44  M1, M2;
 ...
@@ -1988,7 +2001,7 @@ with the unary \texttt{-} operator which internally uses the cached $4 \times 4$
 transformation matrix within \texttt{CPose3D} objects:
 
 \begin{lstlisting}
-#include <mrpt/base.h> 
+#include <mrpt/poses/CPose3D.h> 
 using namespace mrpt::poses; 
 
 CPose3D   q;
@@ -2039,7 +2052,7 @@ Obtaining the inverse of a 7D-pose of type \texttt{CPose3DQuat} is implemented
 with the unary \texttt{-} operator:
 
 \begin{lstlisting}
-#include <mrpt/base.h> 
+#include <mrpt/poses/CPose3DQuat.h> 
 using namespace mrpt::poses; 
 
 CPose3DQuat   q;
@@ -2099,7 +2112,7 @@ cov(\mathbf{q})
 The Gaussian distrution of an inverse 3D+Quat pose can be computed simply by:
 
 \begin{lstlisting}
-#include <mrpt/base.h> 
+#include <mrpt/poses/CPose3DQuatPDFGaussian.h> 
 using namespace mrpt::poses; 
 
 CPose3DQuatPDFGaussian  p1 = ...
@@ -3076,7 +3089,8 @@ The exponential maps can be accessed through static methods, which return object
 with the corresponding $\mathbf{SO}(3)$ or $\mathbf{SE}(3)$ transformation matrix:
 
 \begin{lstlisting}
-#include <mrpt/base.h> 
+#include <mrpt/poses/CPose3D.h> 
+#include <mrpt/math/CArrayNumeric.h>
 using namespace mrpt::poses; 
 using namespace mrpt::math;
 
@@ -3092,7 +3106,8 @@ The logarithms can be accessed through normal methods of an object which
 holds the transformation of interest, and return vectors or lengths 3 or 6:
 
 \begin{lstlisting}
-#include <mrpt/base.h> 
+#include <mrpt/poses/CPose3D.h> 
+#include <mrpt/math/CArrayNumeric.h>
 using namespace mrpt::poses; 
 using namespace mrpt::math;
 
