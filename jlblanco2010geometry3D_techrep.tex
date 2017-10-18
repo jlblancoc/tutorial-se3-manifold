@@ -17,6 +17,16 @@
 \usepackage{fancyhdr}               % Cabeceras
 %\usepackage[dvips]{graphicx}
 \usepackage{titlesec}
+
+% ============= Fix buggy version of titlesec
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd{\ttlh@hang}{\parindent\z@}{\parindent\z@\leavevmode}{}{}
+\patchcmd{\ttlh@hang}{\noindent}{}{}{}
+\makeatother
+% =============
+
+
 \usepackage{color}
 \usepackage{colortbl}
 \usepackage{lastpage}
@@ -111,6 +121,8 @@ numerical estimation of the Jacobians.
 
 \textbf{History of document versions:}
 \begin{itemize}
+ \item Version 8: Corrected typos in equations of \S\ref{sect:point_inv:quat} (18/Oct/2017) (Thanks to Otacílio Neto for detecting and reporting it)
+
  \item Version 7: C++ code excerpts updated to MRPT 1.3.0 or newer (18/Oct/2016)
 
  \item Version 6: Fixed a few typos in matrix size legends (8/Dec/2015)
@@ -1466,9 +1478,9 @@ relative to $\mathbf{p_7}$, that is, $\mathbf{a'} = \mathbf{a} \ominus \mathbf{p
 \label{eq:fqri}
 \mathbf{a'} = \mathbf{f_{qri}}( \mathbf{a}, \mathbf{p_7} ) =
 \left(\begin{array}{c}
- (a_x-x) + 2 \left[-(q_y^2+ q_z^2) (a_x-x) +(q_x q_y - q_r q_z) (a_y-y)+(q_r q_y+q_x q_z) (a_z-z) \right]  \\
- (a_y-y) + 2 \left[(q_r q_z+  q_x q_y) (a_x-x)-(q_x^2 +q_z^2) (a_y-y)+(q_y q_z-q_r q_x) (a_z-z) \right] \\
- (a_z-z) + 2 \left[(q_x q_z-  q_r q_y) (a_x-x)+(q_r q_x + q_y q_z) (a_y-y)-(q_x^2+q_y^2) (a_z-z) \right]  \\
+ (a_x-x) + 2 \left[-(q_y^2+ q_z^2) (a_x-x) +(q_x q_y + q_r q_z) (a_y-y)+(-q_r q_y+q_x q_z) (a_z-z) \right]  \\
+ (a_y-y) + 2 \left[(-q_r q_z+  q_x q_y) (a_x-x)-(q_x^2 +q_z^2) (a_y-y)+(q_y q_z+q_r q_x) (a_z-z) \right] \\
+ (a_z-z) + 2 \left[(q_x q_z+ q_r q_y) (a_x-x)+(-q_r q_x + q_y q_z) (a_y-y)-(q_x^2+q_y^2) (a_z-z) \right]  \\
 \end{array}\right) 
 \end{eqnarray}
 
@@ -1516,9 +1528,9 @@ cov(\mathbf{a})  ~
 \begin{eqnarray}
 \frac{ \partial \mathbf{f_{qri}}( \mathbf{a}, \mathbf{p} )}{\partial \mathbf{a}} = 
 \left(\begin{array}{ccc} 
-1 - 2 (q_y^2 + q_z^2)   &    2 q_x q_y + 2 qr q_z  &     - 2 qr q_y + 2 q_x q_z \\
--2 qr q_z + 2 q_x q_y &   1 - 2 (q_x^2 + q_z^2) &   2 q_y q_z + 2 qr q_x \\
-2 q_x q_z + 2 qr q_y &   -2 qr q_x + 2 q_y q_z & 1 - 2 (q_x^2 + q_y^2 ) \\
+1 - 2 (q_y^2 + q_z^2)   &    2 q_x q_y + 2 q_r q_z  &     - 2 q_r q_y + 2 q_x q_z \\
+-2 q_r q_z + 2 q_x q_y &   1 - 2 (q_x^2 + q_z^2) &   2 q_y q_z + 2 q_r q_x \\
+2 q_x q_z + 2 q_r q_y &   -2 q_r q_x + 2 q_y q_z & 1 - 2 (q_x^2 + q_y^2 ) \\
 \end{array}\right) 
 \end{eqnarray}
 
