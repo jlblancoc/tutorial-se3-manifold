@@ -1,10 +1,15 @@
 # tutorial-se3-manifold
+LaTeX sources of the technical report "A tutorial on SE(3) transformation parameterizations and on-manifold optimization". Latest version of the document can be reached online: [jlblanco2010geometry3D_techrep.pdf](http://ingmec.ual.es/~jlblanco/papers/jlblanco2010geometry3D_techrep.pdf)
 
-LaTeX sources of the technical report "A tutorial on SE(3) transformation parameterizations and on-manifold optimization"
+Prerequisites in Ubuntu:
 
-Latest version of the document can be reached online: [jlblanco2010geometry3D_techrep.pdf](http://ingmec.ual.es/~jlblanco/papers/jlblanco2010geometry3D_techrep.pdf)
+        sudo apt install latexmk texlive texlive-science
 
-Cite as: 
+Build PDF with:
+
+        make
+
+Cite as:
 
 ```bibtex
 @article{blanco2010tutorial,
