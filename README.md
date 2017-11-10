@@ -1,6 +1,8 @@
 # tutorial-se3-manifold
 LaTeX sources of the technical report "A tutorial on SE(3) transformation parameterizations and on-manifold optimization". Latest version of the document can be reached online: [jlblanco2010geometry3D_techrep.pdf](http://ingmec.ual.es/~jlblanco/papers/jlblanco2010geometry3D_techrep.pdf)
 
+See also in [Google Scholar](https://scholar.google.es/scholar?q=A+tutorial+on+SE%283%29+transformation+parameterizations+and+on-manifold+optimization&btnG=).
+
 ## Build PDF
 
 Prerequisites in Ubuntu:
