@@ -14,12 +14,13 @@ Build PDF with:
 ## Cite as
 
 ```bibtex
-@article{blanco2010tutorial,
-  title={A tutorial on se (3) transformation parameterizations and on-manifold optimization},
+@TECHREPORT{blanco2010tutorial,
+  title={{A tutorial on SE(3) transformation parameterizations and on-manifold optimization}},
   author={Blanco, Jose-Luis},
-  journal={University of Malaga, Tech. Rep},
-  volume={3},
-  year={2010}
+  INSTITUTION={University of Malaga},
+  NUMBER={012010},
+  year={2010},
+  URL={http://ingmec.ual.es/~jlblanco/papers/jlblanco2010geometry3D_techrep.pdf}
 }
 ```
 

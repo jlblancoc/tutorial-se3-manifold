@@ -12,6 +12,7 @@
 \usepackage{color}
 \usepackage{listings}
 \usepackage[utf8x]{inputenc}
+\usepackage{wrapfig}
 
 \usepackage{amsfonts}  % For \mathbb
 \usepackage{amsthm}	% For \theorem
@@ -121,6 +122,14 @@ numerical estimation of the Jacobians.
 
 \newpage
 
+\begin{wrapfigure}{r}{3cm}
+    \includegraphics[width=2.7cm]{imgs/forkme.png}
+\end{wrapfigure}
+
+Feedback and contributions are welcome in: \\
+\url{https://github.com/jlblancoc/tutorial-se3-manifold}.
+
+\vspace{2cm}
 
 \textbf{History of document versions:}
 \begin{itemize}
@@ -166,6 +175,7 @@ This work is licensed under
 Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)
 License.
 \end{center}
+
 \end{scriptsize}
 
 
@@ -306,7 +316,7 @@ $\{\mathbf{X},\mathbf{Y},\mathbf{Z} \}$.
 
 \begin{figure}[h!]
 \centering
-\includegraphics[width=0.70\textwidth]{fig_pose_composition.pdf}
+\includegraphics[width=0.70\textwidth]{imgs/fig_pose_composition.pdf}
 \caption{Schematic representation of a 6D pose $\mathbf{p}$ and its role in defining
 the relative coordinates $\mathbf{a}'$ of the 3D point $\mathbf{a}$.}
 \label{fig:1}
@@ -338,9 +348,9 @@ This is illustrated in Figure~\ref{fig:comp_2poses}.
 
 \begin{figure}[h!]
 \centering
-\subfigure[The pose $\mathbf{p1}$]{\includegraphics[width=0.4\textwidth]{pose_comp_p1.pdf}}
-\subfigure[The pose $\mathbf{p2}$]{\includegraphics[width=0.4\textwidth]{pose_comp_p2.pdf}} \\
-\subfigure[Composition $\mathbf{p1} \oplus \mathbf{p2}$]{\includegraphics[width=0.6\textwidth]{pose_comp_p1p2.pdf}}
+\subfigure[The pose $\mathbf{p1}$]{\includegraphics[width=0.4\textwidth]{imgs/pose_comp_p1.pdf}}
+\subfigure[The pose $\mathbf{p2}$]{\includegraphics[width=0.4\textwidth]{imgs/pose_comp_p2.pdf}} \\
+\subfigure[Composition $\mathbf{p1} \oplus \mathbf{p2}$]{\includegraphics[width=0.6\textwidth]{imgs/pose_comp_p1p2.pdf}}
 \caption{The composition of two 6D poses $\mathbf{p1}$ and $\mathbf{p2}$ leads to $\mathbf{p}$.}
 \label{fig:comp_2poses}
 \end{figure}
@@ -377,7 +387,7 @@ the one employed here is the one most commonly used in robotics.
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.40\textwidth]{fig1.pdf}
+\includegraphics[width=0.40\textwidth]{imgs/fig1.pdf}
 \caption{A common convention for the angles yaw, pitch and roll.}
 \label{fig:ypr}
 \end{figure}
@@ -457,7 +467,7 @@ The convention is $q_r$ (and thus $\theta$) to be non-negative.
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.50\textwidth]{quaternion.pdf}
+\includegraphics[width=0.50\textwidth]{imgs/quaternion.pdf}
 \caption{A quaternion can be seen as a rotation around an arbitrary 3D axis.}
 \label{fig:quat}
 \end{figure}
