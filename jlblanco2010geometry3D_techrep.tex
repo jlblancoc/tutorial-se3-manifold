@@ -92,7 +92,7 @@
 of M\'alaga, Spain}
 
 \TRInfo{A tutorial on $\mathbf{SE}(3)$ transformation parameterizations and on-manifold optimization}
-{Jose-Luis Blanco\\ \begin{small} \texttt{jlblanco@ual.es} \\ \texttt{http://www.ual.es/personal/jlblanco/} \end{small} }
+{José Luis Blanco Claraco\\ \begin{small} \texttt{jlblanco@ual.es} \\ \url{https://w3.ual.es/personal/jlblanco/} \end{small} }
 {MAPIR Group}{}{012010}{Last update: \ddmmyyyydate \today }
 \PageStyle
 
@@ -133,6 +133,8 @@ Feedback and contributions are welcome in: \\
 
 \textbf{History of document versions:}
 \begin{itemize}
+ \item 28/Nov/2017: Fixed typos in \S\ref{eq:jacob_pmA_e_D} (Thanks to \href{https://github.com/gblack007}{@gblack007}).
+
  \item 10/Nov/2017: Sources published in GitHub: \\
     \url{https://github.com/jlblancoc/tutorial-se3-manifold}.
 
@@ -3736,6 +3738,7 @@ When optimizing a pose $\D$ which belongs to a sequence of chained poses
 ($\A \oplus \D$), we will need to evaluate:
 
 \begin{eqnarray}
+\label{eq:jacob.AeD}
 \left. \frac{\partial \A e^\E \D}{\partial \E} \right|_{\E = 0}
 &=&
 \left. \frac{\partial \A \B}{\partial \B} \right|_{\B= e^0 \D = \D}
@@ -3838,6 +3841,7 @@ the following approximation can be used:
 
 
 \subsection{Jacobian of $p \ominus (A \oplus e^\varepsilon \oplus D)$}
+\label{eq:jacob_pmA_e_D}
 
 This expression may also appear in computer-vision problems,
 such as in relative bundle-adjustment \cite{sibley2009rba}.
@@ -3859,14 +3863,14 @@ and:
 \right)
 \end{equation}
 
-Then, the Jacobian of interest is:
+Then, the Jacobian of interest can be obtained by chaining Eq.~\ref{eq:jacob.AeD} and Eq.~\ref{eq:jac_dp_min_A}:
 
 \begin{eqnarray}
 \left. \frac{\partial (\A e^\E \D)^{-1} \mathbf{p}}{\partial \E} \right|_{\E = 0}
 &=&
 \left[
 \begin{array}{cc}
- \I_3 \otimes (\mathbf{p}-\mathbf{t_{AB}})^\top  & -\mathbf{R}(\A\D)^\top
+ \I_3 \otimes (\mathbf{p}-\mathbf{t_{AD}})^\top  & -\mathbf{R}(\A\D)^\top
 \end{array}
 \right]
 \left(
@@ -3874,10 +3878,12 @@ Then, the Jacobian of interest is:
  \mathbf{0}_{3\times 3}  & -\mathbf{R}(\A) [\mathbf{d_{c1}}]_\times \\
  \mathbf{0}_{3\times 3}  & -\mathbf{R}(\A) [\mathbf{d_{c2}}]_\times \\
  \mathbf{0}_{3\times 3}  & -\mathbf{R}(\A) [\mathbf{d_{c3}}]_\times \\
- \mathbf{R}(\A\D)        & -\mathbf{R}(\A) [\mathbf{d_{t}}]_\times \\
+ \mathbf{R}(\A)        & -\mathbf{R}(\A) [\mathbf{d_{t}}]_\times \\
 \end{array}
 \right)
 ~ \text{(A $3 \times 6$ Jacobian)} \nonumber
+\\
+~ % eq number
 \end{eqnarray}
 
 
