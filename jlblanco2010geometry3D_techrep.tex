@@ -133,6 +133,8 @@ Feedback and contributions are welcome in: \\
 
 \textbf{History of document versions:}
 \begin{itemize}
+ \item 25/Mar/2018: Fixed minor typos.
+  
  \item 28/Nov/2017: Fixed typos in \S\ref{eq:jacob_pmA_e_D} (Thanks to \href{https://github.com/gblack007}{@gblack007}).
 
  \item 10/Nov/2017: Sources published in GitHub: \\
@@ -146,7 +148,7 @@ Feedback and contributions are welcome in: \\
 
  \item 21/Oct/2014: Fixed a typo in Eq.~\ref{eq:rodrigues_ln} (Thanks to Tanner Schmidt for reporting).
 
- \item 9/May/2013: Added formulas for the Jacobian of the SO(3) logarithm map, in \S\ref{sect:eq:jacob_dLnROT_dROT}.
+ \item 9/May/2013: Added the Jacobian of the SO(3) logarithm map, in \S\ref{sect:eq:jacob_dLnROT_dROT}.
 
  \item 14/Aug/2012: Added the explicit formulas for the logarithm map of SO(3) and SE(3),
     fixed error in Eq.~(\ref{eq:jacob_p_min_eD_e}), explained the equivalence between the yaw-pitch-roll
@@ -3021,7 +3023,7 @@ well-known Rodrigues rotation formula \cite{altafini2000cas}:
  \ln(\mathbf{R}) &=& \frac{\theta}{2\sin \theta} \left( \mathbf{R} - \mathbf{R}^\top
 \right)
 \nonumber \\
-\cos \theta &=& \frac{tr(R)-1}{2}  \nonumber \\
+\cos \theta &=& \frac{tr(\mathbf{R})-1}{2}  \nonumber \\
 \label{eq:log_so3}
  \W &=& \left[ \ln(\mathbf{R}) \right]_\triangledown
 \end{eqnarray}
@@ -3408,7 +3410,7 @@ Then, given an input rotation matrix $\mathbf{R}$:
 
 \begin{eqnarray}
 \left.
- \frac{d \ln(\mathbf{R}) }{d \mathbf{R}}
+ \frac{\partial \ln(\mathbf{R}) }{\partial \mathbf{R}}
 \right|_{3\times 9}
  =
 \left\{
