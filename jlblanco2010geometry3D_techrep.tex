@@ -133,6 +133,8 @@ Feedback and contributions are welcome in: \\
 
 \textbf{History of document versions:}
 \begin{itemize}
+ \item 29/May/2018: Adoption of the widespread notation for the "hat" and "vee" Lie group operators, as introduced now in \S\ref{sect:mat_deriv:ops}.
+
  \item 25/Mar/2018: Fixed minor typos.
   
  \item 28/Nov/2017: Fixed typos in \S\ref{eq:jacob_pmA_e_D} (Thanks to \href{https://github.com/gblack007}{@gblack007}).
@@ -152,7 +154,7 @@ Feedback and contributions are welcome in: \\
 
  \item 14/Aug/2012: Added the explicit formulas for the logarithm map of SO(3) and SE(3),
     fixed error in Eq.~(\ref{eq:jacob_p_min_eD_e}), explained the equivalence between the yaw-pitch-roll
-and roll-pitch-yaw forms and introduction of the $\left[ \ln \mathbf{R} \right]_\triangledown$ notation
+and roll-pitch-yaw forms and introduction of the $\left[ \ln \mathbf{R} \right]^\vee$ notation
 when discussing the logarithm maps.
 
  \item 12/Sep/2010: Added more Jacobians (\S\ref{sect:jacob_eDp},
@@ -2238,7 +2240,7 @@ Example:
 \right)
 \end{equation}
 }
-\item{The Kronecker operator, or matrix direct product.
+\item{The \textbf{Kronecker operator}, or matrix direct product.
 Denoted as $\mathbf{A} \otimes \mathbf{B}$ for any two matrices
 $\mathbf{A}$ and $\mathbf{B}$ of dimensions $M_A \times N_A$
 and $M_B \times N_B$, respectively,
@@ -2256,13 +2258,45 @@ a_{21} \mathbf{B}  & a_{22} \mathbf{B} & a_{23} \mathbf{B}  & ... \\
 \right)
 \end{equation}
 }
-\item{The transpose permutation matrix. Denoted as $\mathbf{T_{M,N}}$,
+\item{The \textbf{transpose permutation matrix}. Denoted as $\mathbf{T_{M,N}}$,
 these are simple permutation matrices of size $MN \times MN$ containing all 0s
 but for just one 1 at each column or row,
 such as for any $M \times N$ matrix $\mathbf{A}$ it holds:
 \begin{equation}
 \mathbf{T_{N,M}} vec(\mathbf{A}) = vec(\mathbf{A}^\top)
 \end{equation}
+}
+\item{The \textbf{hat operator} $\hat{(\cdot)}$, maps a $3\times 1$ vector to its corresponding skew-symmetric matrix:
+	\begin{equation}
+	\label{eq:skew}
+	\bm{\omega} = \left[ \begin{array}{c} x \\ y \\z \end{array} \right]
+	\quad \quad
+	\hat{\bm{\omega}}
+	=
+	\left(
+	\begin{array}{ccc}
+	0 & -z & y  \\
+	z & 0 & -x  \\
+	-y & x & 0
+	\end{array}
+	\right)
+	\end{equation}
+}
+\item{The \textbf{vee operator} $(\cdot)^{\vee}$, is the inverse of the hat map:
+	\begin{equation}
+	\label{eq:inv.skew}
+	\left(
+	\begin{array}{ccc}
+	0 & -z & y  \\
+	z & 0 & -x  \\
+	-y & x & 0
+	\end{array}
+	\right)
+	^{\vee}
+	=
+	\left[ \begin{array}{c} x \\ y \\z \end{array} \right]
+	\end{equation}
+	\noindent, such that $(\hat{\bm{\omega}})^\vee = \bm{\omega}$.
 }
 \end{itemize}
 
@@ -2843,7 +2877,7 @@ infinitesimal rotations along each axis:
 
 \begin{eqnarray}
 \mathfrak{so}(3) &=& \{  \mathbf{G^{\mathfrak{so}(3)}_i} \}_{i=1,2,3}  \\
-\mathbf{G^{\mathfrak{so}(3)}_1} &=& \left[ \begin{array}{c} 1 \\ 0 \\0 \end{array} \right]_\times
+\mathbf{G^{\mathfrak{so}(3)}_1} &=& \hat{\mathbf{e}}_1
 =
 \left(
 \begin{array}{ccc}
@@ -2851,9 +2885,11 @@ infinitesimal rotations along each axis:
 0 & 0 & -1  \\
 0 & 1 & 0
 \end{array}
-\right)
+\right) 
+\quad\quad
+\mathbf{e}_1 = \left[ \begin{array}{c} 1 \\ 0 \\0 \end{array} \right]
 \\
-\mathbf{G^{\mathfrak{so}(3)}_2} &=& \left[ \begin{array}{c} 0 \\ 1 \\0 \end{array} \right]_\times
+\mathbf{G^{\mathfrak{so}(3)}_2} &=& \hat{\mathbf{e}}_2
 =
 \left(
 \begin{array}{ccc}
@@ -2862,8 +2898,10 @@ infinitesimal rotations along each axis:
 -1 & 0 & 0
 \end{array}
 \right)
+\quad\quad
+\mathbf{e}_2 = \left[ \begin{array}{c} 0 \\ 1 \\0 \end{array} \right]
 \\
-\mathbf{G^{\mathfrak{so}(3)}_3} &=& \left[ \begin{array}{c} 0 \\ 0 \\1 \end{array} \right]_\times
+\mathbf{G^{\mathfrak{so}(3)}_3} &=& \hat{\mathbf{e}}_3
 =
 \left(
 \begin{array}{ccc}
@@ -2872,6 +2910,8 @@ infinitesimal rotations along each axis:
 0 & 0 & 0
 \end{array}
 \right)
+\quad\quad
+\mathbf{e}_3 = \left[ \begin{array}{c} 0 \\ 0 \\1 \end{array} \right]
 \\
 \end{eqnarray}
 
@@ -2880,37 +2920,7 @@ has three coordinates (each coordinate multiplies a generator
 matrix $\{  \mathbf{G^{\mathfrak{so}(3)}_1}, \mathbf{G^{\mathfrak{so}(3)}_2}, \mathbf{G^{\mathfrak{so}(3)}_3} \}$) so it can
 be represented as a vector in $\mathbb{R}^3$.
 
-We have introduced above the skew-symmetric matrix operator $[\cdot]_\times$, which is defined as:
-
-\begin{equation}
-\label{eq:skew}
-\left[ \begin{array}{c} x \\ y \\z \end{array} \right]_\times
-=
-\left(
-\begin{array}{ccc}
-0 & -z & y  \\
-z & 0 & -x  \\
--y & x & 0
-\end{array}
-\right)
-\end{equation}
-
-\noindent whose inverse operation will be denoted in the following as $\left[ \cdot \right] _\triangledown$:
-
-\begin{equation}
-\label{eq:inv.skew}
-\left[ \left(
-\begin{array}{ccc}
-0 & -z & y  \\
-z & 0 & -x  \\
--y & x & 0
-\end{array}
-\right) \right]
-_\triangledown
-=
-\left[ \begin{array}{c} x \\ y \\z \end{array} \right]
-\end{equation}
-
+We have used above the so-called "hat" and "vee" operators (see \S\ref{sect:mat_deriv:ops}).
 
 
 \section{Lie algebra of $\mathbf{SE}(3)$}
@@ -3025,7 +3035,7 @@ well-known Rodrigues rotation formula \cite{altafini2000cas}:
 \nonumber \\
 \cos \theta &=& \frac{tr(\mathbf{R})-1}{2}  \nonumber \\
 \label{eq:log_so3}
- \W &=& \left[ \ln(\mathbf{R}) \right]_\triangledown
+ \W &=& \left[ \ln(\mathbf{R}) \right]^\vee
 \end{eqnarray}
 
 
@@ -3114,7 +3124,7 @@ The map:
 \end{array}
 \right)
 \nonumber \\
-\W &=& \left[ \ln \mathbf{R} \right]_\triangledown  \quad \quad \text{(see Eq.~\ref{eq:log_so3})}
+\W &=& \left[ \ln \mathbf{R} \right]^\vee  \quad \quad \text{(see Eq.~\ref{eq:log_so3})}
 \\
 \mathbf{t}' &=& \mathbf{V}^{-1} \mathbf{t} \quad \quad \text{(with $\mathbf{V}$ in Eq.~\ref{eq:V_exp})}
 \end{eqnarray}
@@ -3448,7 +3458,7 @@ Then, given an input rotation matrix $\mathbf{R}$:
  a_1 \\ a_2 \\ a_3
 \end{array}
 \right]
- &=& \left[ \mathbf{R} - \mathbf{R}^\top \right]_\triangledown
+ &=& \left[ \mathbf{R} - \mathbf{R}^\top \right]^\vee
 \frac{\theta \cos\theta  -\sin \theta  }{4 \sin^3 \theta}
  = \left[
 \begin{array}{c}
