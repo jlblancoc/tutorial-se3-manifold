@@ -134,7 +134,7 @@ Feedback and contributions are welcome in: \\
 
 \textbf{History of document versions:}
 \begin{itemize}
- \item Oct/2018: Yaw-Pitch-Roll to Quaternion Jacobian gets its own equation number for easier reference: Eq.~\ref{eq:jac_quat_ypr}.
+ \item Oct/2018: Yaw-Pitch-Roll to Quaternion Jacobian gets its own equation number for easier reference: Eq.~\ref{eq:jac_quat_ypr}. Better references for boxplus and boxminus operators in \S\ref{ch:se3_optim}.
 	
  \item 29/May/2018: Adoption of the widespread notation for the "hat" and "vee" Lie group operators, as introduced now in \S\ref{sect:mat_deriv:ops}.
 
@@ -3304,9 +3304,9 @@ state vector is a solution which is gaining popularity
 in the robotics and computer vision community in recent years
 (e.g. \cite{hertzberg2008fsm,strasdat2010scale}).
 
-Following the notation of \cite{hertzberg2008fsm}, the only changes required
+Following the notation of \cite{hertzberg2008fsm,hertzberg2013integrating}, the only changes required
 to the optimization method are
-to replace the expressions on the left column by their counterparts on the right:
+to replace the expressions on the left column by their counterparts on the right (the so-called ``boxplus'' notation $\boxplus$):
 
 \begin{eqnarray}
  \DEL^\star \leftarrow
@@ -3330,8 +3330,8 @@ to replace the expressions on the left column by their counterparts on the right
 on some $N$-dimensional manifold $M$ (a Lie group, actually),
 $\E \in \mathbb{R}^N$ is the increment in the linearization of the manifold
 around $\mathbf{x}$ (using $M$'s Lie algebra as a vector base),
-and operator $\boxplus: M \times \mathbb{R}^N \mapsto M$
-is a generalization of the normal addition operator $+$ for Euclidean spaces.
+and the ``boxplus'' operator $\boxplus: M \times \mathbb{R}^N \mapsto M$
+is a generalization of the normal addition operator $+$ for Euclidean spaces. 
 
 There are two possible ways to implement $\boxplus$, both of them perfectly valid:
 Let $\mathbf{x}, \mathbf{x}' \in M$ be elements of the manifold of the problem $M$,
@@ -3341,7 +3341,7 @@ Then, the two alternatives are:
 \begin{eqnarray}
  \mathbf{x}' = \mathbf{x} \boxplus \E  & \Longrightarrow  & \mathbf{x}' = e^\E \mathbf{x}  \\
  & \text{or} & \\
- \mathbf{x}' = \mathbf{x} \boxplus \E  & \Longrightarrow & \mathbf{x}' = \mathbf{x} e^\E  \\
+ \mathbf{x}' = \mathbf{x} \boxplus \E  & \Longrightarrow & \mathbf{x}' = \mathbf{x} e^\E 
 \end{eqnarray}
 
 \noindent with $e^\E \mathbf{x}$ and $\mathbf{x} e^\E$ being the ``product'' as defined by
@@ -3363,6 +3363,13 @@ when doing the $\E \leftarrow \E \boxplus \E^\star$ update.
 Therefore, both are equivalent alternatives.
 In the following sections the left-multiplication convention ($e^\E \mathbf{x}$)
 will be followed.
+
+In GraphSLAM problems, the ``boxminus'' operator ($\boxminus$) is also required:
+
+\begin{eqnarray}
+\label{eq:boxminus}
+ \mathbf{y} \boxminus \mathbf{x} = \log( \mathbf{x}^{-1} \mathbf{y} )
+\end{eqnarray}
 
 
 \section{Useful manifold derivatives}
@@ -3420,7 +3427,8 @@ those in \S\ref{chap:mat_deriv} and the chain rule.
 
 This Jacobian will end up appearing wherever we take derivatives of a function which at some point takes
 as argument a rotation matrix ($3\times 3$) and computes its logarithm map \S\ref{sect:log_map_so3},
-e.g. while optimizing pose graphs in Graph-SLAM.
+e.g. while optimizing pose graphs in Graph-SLAM with the 
+``boxminus'' operator (see Eq.~\ref{eq:boxminus}).
 
 Then, given an input rotation matrix $\mathbf{R}$:
 
@@ -3494,7 +3502,7 @@ b &=& \frac{\theta}{2 \sin \theta}
 
 
 
-\subsection{Jacobian of $e^\varepsilon \oplus D$}
+\subsection{Jacobian of $D\boxplus \varepsilon = e^\varepsilon \oplus D$ (left-multiply option)}
 \label{sect:jacob_eD}
 
 Let $\mathbf{D} \in \mathbf{SE}(3)$ be a pose with associated transformation matrix:
@@ -3538,7 +3546,7 @@ we are interested in the derivative of $e^\E \oplus \mathbf{D}$ w.r.t $\E$:
 
 \newpage
 
-\subsection{Jacobian of $D \oplus e^\varepsilon$}
+\subsection{Jacobian of $D\boxplus \varepsilon = D \oplus e^\varepsilon$  (right-multiply option)}
 \label{sect:jacob_De}
 
 Let $\mathbf{D} \in \mathbf{SE}(3)$ be a pose with associated transformation matrix:
