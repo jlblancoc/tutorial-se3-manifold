@@ -13,6 +13,7 @@
 \usepackage{listings}
 \usepackage[utf8x]{inputenc}
 \usepackage{wrapfig}
+\usepackage{subeqnarray}
 
 \usepackage{amsfonts}  % For \mathbb
 \usepackage{amsthm}	% For \theorem
@@ -133,6 +134,8 @@ Feedback and contributions are welcome in: \\
 
 \textbf{History of document versions:}
 \begin{itemize}
+ \item Oct/2018: Yaw-Pitch-Roll to Quaternion Jacobian gets its own equation number for easier reference: Eq.~\ref{eq:jac_quat_ypr}.
+	
  \item 29/May/2018: Adoption of the widespread notation for the "hat" and "vee" Lie group operators, as introduced now in \S\ref{sect:mat_deriv:ops}.
 
  \item 25/Mar/2018: Fixed minor typos.
@@ -632,6 +635,16 @@ be expressed as a quaternion with components $(q_r, q_x,q_y,q_z)$
 given by \cite{horn2001some}:
 
 \begin{eqnarray}
+ \mathbf{q}(\phi,\chi,\psi) &=& 
+ \begin{bmatrix} 
+	 q_r(\phi,\chi,\psi) \\
+	 q_x(\phi,\chi,\psi) \\
+	 q_y(\phi,\chi,\psi) \\
+	 q_z(\phi,\chi,\psi)
+ \end{bmatrix}
+ \quad \quad 
+ \mathbf{q}(\phi,\chi,\psi) : \mathcal{R}^3 \rightarrow \mathcal{R}^4
+\\
   q_r(\phi,\chi,\psi) &=& \cos\frac{\psi}{2} \cos\frac{\chi}{2}  \cos\frac{\phi}{2}  +
   \sin\frac{\psi}{2} \sin\frac{\chi}{2} \sin\frac{\phi}{2}    \\
   q_x(\phi,\chi,\psi) &=& \sin\frac{\psi}{2} \cos\frac{\chi}{2}  \cos\frac{\phi}{2}  -
@@ -676,20 +689,25 @@ cov(\mathbf{p_6})  ~
 
 \noindent where the Jacobian matrix is given by:
 
-\begin{equation}
+\begin{subeqnarray}
 \label{eq:jac_p7_p6}
-\frac{\partial \mathbf{p_7}(\mathbf{p_6}) }{\partial \mathbf{p_6}} =
+\frac{\partial \mathbf{p_7}(\mathbf{p_6}) }{\partial \mathbf{p_6}} &=&
 \left(
-\begin{array}{c|cccc}
- \mathbf{I_3} & & \mathbf{0_{3\times 3}} & \\ \hline
-  & (ssc-ccs)/2 & (scs-csc)/2 & (css-scc)/2 \\
- \mathbf{0_{4\times 3}}
-  & -(csc+scs)/2 & -(ssc+ccs)/2 & (ccc+sss)/2 \\
-  & (scc-css)/2 & (ccc-sss)/2 & (ccs-ssc)/2 \\
-  & (ccc+sss)/2 & -(css+scc)/2 & -(csc+scs)/2 \\
+\begin{array}{c|cc}
+ \mathbf{I_3} & \mathbf{0_{3\times 3}} \\ \hline
+ \mathbf{0_{4\times 3}} & \frac{\partial \mathbf{q}(\phi,\chi,\psi) }{\partial \{ \phi,\chi,\psi \} }
 \end{array}
 \right)_{7 \times 6}
-\end{equation}
+\\
+\slabel{eq:jac_quat_ypr}
+\frac{\partial \mathbf{q}(\phi,\chi,\psi) }{\partial \{ \phi,\chi,\psi \} } &=& 
+\begin{bmatrix}
+	(ssc-ccs)/2 & (scs-csc)/2 & (css-scc)/2 \\
+	-(csc+scs)/2 & -(ssc+ccs)/2 & (ccc+sss)/2 \\
+	(scc-css)/2 & (ccc-sss)/2 & (ccs-ssc)/2 \\
+	(ccc+sss)/2 & -(css+scc)/2 & -(csc+scs)/2
+\end{bmatrix} _{4 \times 3}
+\end{subeqnarray}
 
 \noindent where the following abbreviations have been used:
 
