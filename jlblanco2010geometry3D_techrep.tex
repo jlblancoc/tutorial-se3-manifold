@@ -14,6 +14,7 @@
 \usepackage[utf8x]{inputenc}
 \usepackage{wrapfig}
 \usepackage{subeqnarray}
+\usepackage{cancel}
 
 \usepackage{amsfonts}  % For \mathbb
 \usepackage{amsthm}	% For \theorem
@@ -134,7 +135,7 @@ Feedback and contributions are welcome in: \\
 
 \textbf{History of document versions:}
 \begin{itemize}
- \item Oct/2018: Yaw-Pitch-Roll to Quaternion Jacobian gets its own equation number for easier reference: Eq.~\ref{eq:jac_quat_ypr}. Better references for boxplus and boxminus operators in \S\ref{ch:se3_optim}.
+ \item Oct/2018: Yaw-Pitch-Roll to Quaternion Jacobian gets its own equation number for easier reference: Eq.~\ref{eq:jac_quat_ypr}. Better references for boxplus and boxminus operators in \S\ref{ch:se3_optim}. Added \S\ref{sect:jacob.p6_p12}.
 	
  \item 29/May/2018: Adoption of the widespread notation for the "hat" and "vee" Lie group operators, as introduced now in \S\ref{sect:mat_deriv:ops}.
 
@@ -851,7 +852,7 @@ for the transformation formulas to hold), then transformation to yaw-pitch-roll 
 
 \noindent where the second term in the product is the Jacobian of the quaternion
 normalization (see \S \ref{sect:quat:norm}). Here, and in the rest of this report,
-it can be replaced by an identity Jacobian $\mathbf{I}_4$ if it known for sure that
+it can be replaced by an identity Jacobian $\mathbf{I}_4$ if it is known for sure that
 the quaternion is normalized.
 
 Regarding the first term in the product, it is the
@@ -1041,11 +1042,33 @@ a 6D pose in 3D+YPR form (see Eq.~(\ref{eq:matP_ypr}) and (\ref{eq:mat_ypr})):
    p_{11} & p_{12}& p_{13}& p_{14} \\
    p_{21} & p_{22}& p_{23}& p_{24} \\
    p_{31} & p_{32}& p_{33}& p_{34} \\
-   0 & 0 & 0& 1
+ \hline
+   \cancel{0} & \cancel{0} & \cancel{0} & \cancel{1}
   \end{array}
 \right)
 \end{array}
 \end{equation*}
+
+\noindent where we seek a closed-form expression for the following function:
+
+\begin{eqnarray*}
+\mathbf{p_{6}}(\mathbf{p_{12}}): \mathcal{R}^{3 \times 4} &\rightarrow& \mathcal{R}^6
+\\
+\left(
+\begin{array}{ccc|c}
+	p_{11} & p_{12}& p_{13}& p_{14} \\
+	p_{21} & p_{22}& p_{23}& p_{24} \\
+	p_{31} & p_{32}& p_{33}& p_{34} \\
+\end{array}
+\right)
+ &\rightarrow&
+\begin{bmatrix}
+	x \\ y \\ z \\ \phi \\ \chi \\ \psi
+\end{bmatrix}
+\begin{array}{c}
+	\\ \\ \\ (yaw) \\ (pitch) \\ (roll)
+\end{array}
+\end{eqnarray*}
 
 \noindent it is obvious that the 3D translation part can be recovered by simply:
 
@@ -1059,13 +1082,13 @@ a 6D pose in 3D+YPR form (see Eq.~(\ref{eq:matP_ypr}) and (\ref{eq:mat_ypr})):
   \right.
 \end{eqnarray*}
 
-Regarding the three angles yaw ($\phi$), pitch ($\chi$) and roll ($\chi$), they must be obtained
+Regarding the three angles yaw ($\phi$), pitch ($\chi$) and roll ($\psi$), they must be obtained
 in two steps in order to properly handle the special cases
 (refer to the gimbal lock problem in \S \ref{sect:ypr:gimbal}).
 Firstly, pitch is obtained from:
 
 \begin{eqnarray}
-  \chi &=& \mathrm{atan2} \left( -p_{31} , \sqrt{ p_{11}^2 + p_{21}^2 } \right)
+pitch: \quad  \chi &=& \mathrm{atan2} \left( -p_{31} , \sqrt{ p_{11}^2 + p_{21}^2 } \right)
 \end{eqnarray}
 
 Next, depending on whether we are in a degenerate case ($|\chi|=90^\circ$) or
@@ -1078,24 +1101,24 @@ that work for all the special cases.}:
   \chi = -90^\circ \quad \longrightarrow \quad
    \left\{
   \begin{array}{rcl}
-    \phi  &=& \mathrm{atan2}( -p_{23}, -p_{13} ) \\
-    \psi  &=& 0 \\
+    yaw: \quad  \phi  &=& \mathrm{atan2}( -p_{23}, -p_{13} ) \\
+    roll: \quad  \psi  &=& 0 \\
   \end{array}
    \right.
 \\
   |\chi| \neq 90^\circ \quad \longrightarrow \quad
    \left\{
   \begin{array}{rcl}
-    \phi   &=& \mathrm{atan2}(p_{21},p_{11}) \\
-    \psi  &=&  \mathrm{atan2}(p_{32},p_{33}) \\
+    yaw: \quad  \phi   &=& \mathrm{atan2}(p_{21},p_{11}) \\
+     roll: \quad  \psi  &=&  \mathrm{atan2}(p_{32},p_{33}) \\
   \end{array}
    \right.
 \\
   \chi = 90^\circ \quad \longrightarrow \quad
    \left\{
   \begin{array}{rcl}
-    \phi  &=& \mathrm{atan2}( p_{23}, p_{13} ) \\
-    \psi  &=& 0 \\
+    yaw: \quad  \phi  &=& \mathrm{atan2}( p_{23}, p_{13} ) \\
+     roll: \quad  \psi  &=& 0 \\
   \end{array}
    \right.
 \end{eqnarray}
@@ -1116,6 +1139,43 @@ CMatrixDouble44  M;
 ...
 CPose3D          p = CPose3D(M);
 \end{lstlisting}
+
+\subsection{Uncertainty}
+\label{sect:jacob.p6_p12}
+
+Let a Gaussian distribution over a SE(3) pose in matrix form be specified 
+by a $\mathbf{\bar{p}_{12}}$ mean and let $cov(\mathbf{p_{12}})$ be its $12 \times 12$ covariance matrix (refer to \S\ref{sect:mat_deriv:not} for an explanation of where ``12'' comes from). We can estimate the $6 \times 6$  covariance matrix $cov(\mathbf{p_6})$ of the equivalent yaw-pitch-roll form by means of:
+
+\begin{equation}
+cov(\mathbf{p_{6}}) =
+\frac{\partial \mathbf{p_{6}}(\mathbf{p_{12}}) }{\partial \mathbf{p_{12}}} ~
+cov(\mathbf{p_{12}})  ~
+\frac{\partial \mathbf{p_{6}}(\mathbf{p_{12}}) }{\partial \mathbf{p_{12}}}^\top
+\end{equation}
+
+\noindent where the Jacobian matrix has the following block structure:
+
+\begin{equation}
+\label{eq:jac_p6_p12}
+\frac{\partial \mathbf{p_{6}}(\mathbf{p_{12}}) }{\partial \mathbf{p_{12}}} =
+\left(
+\begin{array}{cc}
+\mathbf{0}_{3 \times 9} & \mathbf{I}_3 \\
+\dfrac{\partial \{ \phi,\chi,\psi \} }{\partial vec(\mathbf{R})} & \mathbf{0}_{3 \times 3}
+\end{array}
+\right)_{6 \times 12}
+\end{equation}
+
+\noindent where $\mathbf{R}$ is the $3 \times 3$ SO(3) rotational part of the pose $\mathbf{\bar{p}_{12}}$ and the $vec(\cdot)$ operator is defined in \S\ref{sect:mat_deriv:ops}.
+
+The remaining Jacobian block is defined as:
+
+\begin{subeqnarray}
+\frac{\partial \{ \phi,\chi,\psi \} }{\partial vec(\mathbf{R})} &=& ...
+\end{subeqnarray}
+
+Write me!
+
 
 
 \section{Matrix to 3D+Quat }
@@ -2405,10 +2465,10 @@ Using the standard matrix element subscript notation, i.e:
 \mathbf{M} =
 \left(
 \begin{array}{cccc}
- m_{11} & m_{12} & m_{13} & m_{14}  \\
+ m_{11} & m_{12} & m_{13} & m_{14} ~~  \\
  m_{21} & m_{22} & m_{23} & m_{24}  \\
  m_{31} & m_{32} & m_{33} & m_{34}  \\
- m_{41} & m_{42} & m_{43} & m_{44}
+ \cancelto{0}{m_{41}} & \cancelto{0}{m_{42}} & \cancelto{0}{m_{43}} & \cancelto{1}{m_{44}}
 \end{array}
 \right)
 \end{equation}
