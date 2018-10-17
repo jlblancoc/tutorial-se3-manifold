@@ -456,7 +456,7 @@ defined by a quaternion, that is:
 \mathbf{p_7} &=& [x ~ y ~ z ~  q_r ~ q_x ~ q_y ~ q_z ] ^ \top
 \end{eqnarray}
 
-\noindent where the quaternion elements are $[q_r, (q_x,q_y,q_z)]$. A useful interpretation of quaternions
+\noindent where the unit quaternion elements are $[q_r, (q_x,q_y,q_z)]$. A useful interpretation of quaternions
 is that of a rotation of $\theta$ radians around the axis defined by the vector $\vec{v} = (v_x,v_y,v_z) \propto (q_x,q_y,q_z)$.
 The relation between $\theta$, $\vec{v}$ and the elements in the quaternion is:
 
@@ -473,6 +473,9 @@ q_r = \cos\frac{\theta}{2}  &
 
 This interpretation is also represented in Figure~\ref{fig:quat}.
 The convention is $q_r$ (and thus $\theta$) to be non-negative.
+A quaternion has 3 degrees of freedom in spite of having four components
+due to the unit length constraint, which can be interpreted as a unit hyper-sphere, 
+hence its topology being $S(3)$.
 
 
 \begin{figure}[h]
