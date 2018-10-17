@@ -1166,15 +1166,27 @@ cov(\mathbf{p_{12}})  ~
 \right)_{6 \times 12}
 \end{equation}
 
-\noindent where $\mathbf{R}$ is the $3 \times 3$ SO(3) rotational part of the pose $\mathbf{\bar{p}_{12}}$ and the $vec(\cdot)$ operator is defined in \S\ref{sect:mat_deriv:ops}.
+\noindent where $\mathbf{R}$ is the $3 \times 3$ SO(3) rotational part of the pose $\mathbf{\bar{p}_{12}}$ and the $vec(\cdot)$ operator (column major) is defined in \S\ref{sect:mat_deriv:ops}.
 
 The remaining Jacobian block is defined as:
 
 \begin{subeqnarray}
-\frac{\partial \{ \phi,\chi,\psi \} }{\partial vec(\mathbf{R})} &=& ...
+\frac{\partial \{ \phi,\chi,\psi \} }{\partial vec(\mathbf{R})} &=&
+\left(\begin{array}{ccccccccc} 
+	J_{11} & 0 & 0 & J_{14} & 0 & 0 & 0 & 0 & 0\\ 
+	J_{21} & 0 & 0 & J_{24} & 0 & 0 & 0 & J_{28} & 0\\ 
+	0 & 0 & 0 & 0 & 0 & 0 & 0 & J_{38} & J_{39}
+\end{array}\right)_{3 \times 12}
+\\
+J_{11} &=& -\frac{p_{21}}{k} \\
+J_{14} &=& \frac{p_{11}}{k} \\
+J_{21} &=& \frac{p_{11}\,p_{32}}{\sqrt{k}\,\left(k+{p_{32}}^2\right)} \\
+J_{24} &=& \frac{p_{21}\,p_{32}}{\sqrt{k}\,\left(k+{p_{32}}^2\right)} \\
+J_{28} &=&  -\frac{\sqrt{k}}{k+{p_{32}}^2} \\
+J_{38} &=& \frac{p_{33}}{{p_{32}}^2+{p_{33}}^2} \\
+J_{39} &=& -\frac{p_{32}}{{p_{32}}^2+{p_{33}}^2} \\
+k &=& {p_{11}}^2 + {p_{21}}^2
 \end{subeqnarray}
-
-Write me!
 
 
 
