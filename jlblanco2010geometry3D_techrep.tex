@@ -3251,6 +3251,16 @@ The map:
 
 \noindent where $\mathbf{R}$ and $\mathbf{t}$ are the $3 \times 3$ rotation matrix
 and translational part of the $\mathbf{SE}(3)$ pose.
+Note that $\mathbf{V}^{-1}$ has a closed-form expression \cite{gallier2003computing}:
+
+\begin{equation}
+\mathbf{V}^{-1} = \mathbf{I}_3 
+- \dfrac{1}{2} \hat{\W} + 
+\dfrac{\left(
+ 1 - \dfrac{ \theta \cos(\theta/2)}{2 \sin(\theta / 2)}
+\right) 
+}{\theta^2}  \hat{\W}^2
+\end{equation}
 
 
 \subsection{Implementation in MRPT}
