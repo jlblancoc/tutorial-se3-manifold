@@ -475,7 +475,7 @@ This interpretation is also represented in Figure~\ref{fig:quat}.
 The convention is $q_r$ (and thus $\theta$) to be non-negative.
 A quaternion has 3 degrees of freedom in spite of having four components
 due to the unit length constraint, which can be interpreted as a unit hyper-sphere, 
-hence its topology being $S(3)$.
+hence its topology being that of the special unitary group $SU(2)$, diffeomorphic to $S(3)$.
 
 
 \begin{figure}[h]
@@ -3111,7 +3111,7 @@ The exponential map can be also directly mapped as a unit quaternion $(q_r ~ q_x
 
 \begin{subeqnarray}
 	\exp: \mathfrak{so}(3) & \mapsto & \mathbf{SO}(3) \\
-	\W & \mapsto & \mathbf{S}_{3} \\
+	\W & \mapsto & \mathbf{SU}(2) \\
 	~ \nonumber \\
 	e^ { \W } &=& \left\{ 
 	\begin{array}{ll}
@@ -3151,7 +3151,7 @@ The logarithm map can be also directly given from a unit quaternion $\mathbf{q} 
 
 \begin{subeqnarray}
 	\log: \mathbf{SO}(3) & \mapsto & \mathfrak{so}(3)   \\
-	\mathbf{S}_{3} & \mapsto &  \W \\
+	\mathbf{SU}(2) & \mapsto &  \W \\
     \W  &=& \dfrac{2 \arccos(q_r)}{|\mathbf{q}_v|} ~ \mathbf{q}_v
 \end{subeqnarray}
 
