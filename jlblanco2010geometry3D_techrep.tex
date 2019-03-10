@@ -54,6 +54,8 @@
 \newcommand{\D}{{\mathbf{D}}}
 \newcommand{\I}{{\mathbf{I}}}
 \newcommand{\R}{{\mathbf{R}}}
+\newcommand{\Pone}{\mathbf{P}_1}
+\newcommand{\Ptwo}{\mathbf{P}_2}
 
 \newcommand{\DEL}{{\bm{\delta}}}
 
@@ -139,6 +141,8 @@ Feedback and contributions are welcome in: \\
 
 \textbf{History of document versions:}
 \begin{itemize}
+ \item Mar/2019: Added new sections: \S\ref{sect:jacob.DinvP2invP2}, \S\ref{sect:eq:jacob_dLnSE3_dSE3}.
+
  \item Oct/2018: Yaw-Pitch-Roll to Quaternion Jacobian gets its own equation number for easier reference: Eq.~\ref{eq:jac_quat_ypr}. Better references for boxplus and boxminus operators in \S\ref{ch:se3_optim}. Added \S\ref{sect:jacob.p6_p12}. Added exponential and logarithms for SO(3) in quaternion form to \S\ref{eq:exp.log.so3}.
 	
  \item 29/May/2018: Adoption of the widespread notation for the "hat" and "vee" Lie group operators, as introduced now in \S\ref{sect:mat_deriv:ops}.
@@ -2553,14 +2557,16 @@ If we denote the $4 \times 4$ transformation matrix associated to a pose $X$ as:
 \end{equation}
 
 \noindent the matrix multiplication $\mathbf{T_A}\mathbf{T_B}$ can be
-expanded element by element and, rearranging terms, it can be easily demonstrated that:
+expanded element by element and, rearranging terms, it can be easily shown that:
 
 \begin{eqnarray}
+\label{eq:oplus.ab.wrt.a}
 \frac{\partial f_\oplus(A,B) }{\partial A } &=&
 \frac{\partial \mathbf{T_A}\mathbf{T_B} }{\partial \mathbf{T_A} } = \mathbf{T_B}^\top \otimes \mathbf{I_3}
 \quad \quad \quad
 \text{(a $12 \times 12$ Jacobian)}
 \\
+\label{eq:oplus.ab.wrt.b}
 \frac{\partial f_\oplus(A,B) }{\partial B } &=&
 \frac{\partial \mathbf{T_A}\mathbf{T_B} }{\partial \mathbf{T_B} } =
 \mathbf{I_4} \otimes   \mathbf{R_A}
@@ -3597,11 +3603,11 @@ ordering convention of $\mathfrak{se}(3)$ coordinates shown in Eq.(\ref{eq:vecto
 \label{sect:eq:jacob_dLnROT_dROT}
 
 This Jacobian will end up appearing wherever we take derivatives of a function which at some point takes
-as argument a rotation matrix ($3\times 3$) and computes its logarithm map \S\ref{sect:log_map_so3},
+as argument a rotation matrix ($3\times 3$) and computes the vee operator of its logarithm map \S\ref{sect:log_map_so3},
 e.g. while optimizing pose graphs in Graph-SLAM with the 
 ``boxminus'' operator (see Eq.~\ref{eq:boxminus}).
 
-Then, given an input rotation matrix $\mathbf{R}$:
+Given an input rotation matrix $\mathbf{R}$:
 
 \begin{equation}
 \mathbf{R} = \left(
@@ -3617,8 +3623,9 @@ Then, given an input rotation matrix $\mathbf{R}$:
 \noindent it can be shown that:
 
 \begin{eqnarray}
+\label{eq:dLnRot_wrt_R}
 \left.
- \frac{\partial \log(\mathbf{R}) }{\partial \mathbf{R}}
+ \frac{\partial \log(\mathbf{R})^\vee }{\partial \mathbf{R}}
 \right|_{3\times 9}
  =
 \left\{
@@ -3715,7 +3722,8 @@ we are interested in the derivative of $e^\E \oplus \mathbf{D}$ w.r.t $\E$:
 \quad\quad\quad \text{(A $12 \times 6$ Jacobian)}
 \end{eqnarray}
 
-%\newpage
+Note: This Jacobian is implemented in MRPT in \texttt{CPose3D::jacob\_dexpeD\_de()}.
+
 
 \subsection{Jacobian of $D\boxplus \varepsilon = D \oplus e^\varepsilon$  (right-multiply option)}
 \label{sect:jacob_De}
@@ -3762,6 +3770,7 @@ which can be obtained from the results of \S\ref{sect:jacob_pose_pose_comp} and 
 \end{array}
 \right)
 \\
+\label{eq:jacob.d_eps_wrt_eps}
 &=&
 \left(
 \begin{array}{c|ccc}
@@ -3776,6 +3785,7 @@ which can be obtained from the results of \S\ref{sect:jacob_pose_pose_comp} and 
 \quad\quad \text{(A $12 \times 6$ Jacobian)}
 \end{eqnarray}
 
+Note: This Jacobian is implemented in MRPT in \texttt{CPose3D::jacob\_dDexpe\_de()}.
 
 
 %\newpage
@@ -4098,10 +4108,100 @@ Then, the Jacobian of interest can be obtained by chaining Eq.~\ref{eq:jacob.AeD
 
 % -------------
 
-\subsection{Jacobian of $((P_2 \oplus e^{\varepsilon 2}) \ominus (P_2 \oplus e^{\varepsilon 2})) \ominus D$}
+\subsection{Jacobian of $((P_2 \oplus e^{\varepsilon 2}) \ominus (P_1 \oplus e^{\varepsilon 1})) \ominus D$}
+\label{sect:jacob.DinvP2invP2}
 
-Write me!
+While solving Graph-SLAM problems in SE(3), one needs to optimize the global poses $P_1$ and $P_2$ given a measurement $D$ of the relative pose or $P_2$ with respect to $P_1$, i.e.  $D=P_2 \ominus P_1$ or $\D = \Pone^{-1} \Ptwo$.
+The corresponding error function to be minimized can be written as $(P_2 \ominus P_1) \ominus D$ or $\D^{-1} \Pone^{-1} \Ptwo$.
+Therefore, we need the Jacobians of the latter expression with respect to 
+manifold increments of $P_1$ and $P_2$. 
 
+Normally, we take the logarithm of that error and then apply the vee operator to it 
+to retrieve a 6-vector describing the error. 
+Using the chain rule of Jacobians, we have:
+
+\begin{eqnarray}
+\left. \frac{\partial \log( \D^{-1} (\Pone e^{\E_1} )^{-1} \Ptwo )^\vee}{\partial \E_1} \right|_{\E_1 = 0}
+&=&
+\underbrace{
+\left.
+ \frac{\partial \log(\mathbf{T})^\vee }{\partial \mathbf{T}}
+\right|_{T=\D^{-1} \Pone^{-1} \Ptwo}
+}_{\text{See Eq.~\ref{eq:dLnSE3_wrt_SE3}}}
+%
+\underbrace{
+\left. \frac{\partial f_\oplus(A,B) }{\partial A } \right|_{\begin{subarray}{l} A=\D^{-1} \Pone^{-1} \\ B=\Ptwo \end{subarray}}
+}_{\text{See Eq.~\ref{eq:oplus.ab.wrt.a}}}
+ %
+\underbrace{
+\left. \frac{\partial f_\oplus(A,B) }{\partial B } \right|_{\begin{subarray}{l} A=\D^{-1} \\ B=\Pone^{-1} \end{subarray}}
+}_{\text{See Eq.~\ref{eq:oplus.ab.wrt.b}}}
+%
+\cdot  \nonumber \\ && \cdot
+\underbrace{
+\left. \frac{\partial A^{-1}}{\partial A} \right|_{A=\Pone}
+}_{\text{See Eq.~\ref{eq:jac_dInv_A}}}
+%
+\underbrace{
+\left. \frac{\partial \Pone e^{\E_1} }{\partial \E_1} \right|_{\E_1 = 0}
+}_{\text{See Eq.~\ref{eq:jacob.d_eps_wrt_eps}}}
+%
+\nonumber
+\\
+%
+\end{eqnarray}
+
+\noindent and:
+
+\begin{eqnarray}
+\left. \frac{\partial \log( \D^{-1} \Pone ^{-1} \Ptwo e^{\E_2} )^\vee}{\partial \E_2} \right|_{\E_2 = 0}
+&=&
+\underbrace{
+\left.
+ \frac{\partial \log(\mathbf{T})^\vee }{\partial \mathbf{T}}
+\right|_{T=\D^{-1} \Pone^{-1} \Ptwo}
+}_{\text{See Eq.~\ref{eq:dLnSE3_wrt_SE3}}}
+%
+\underbrace{
+\left. \frac{\partial A e^{\E_2} }{\partial \E_2} \right|_{\begin{subarray}{l} \E_2=0\\ A= \D^{-1} \Pone ^{-1} \Ptwo\end{subarray}}
+}_{\text{See Eq.~\ref{eq:jacob.d_eps_wrt_eps}}}
+%
+\nonumber
+\\
+%
+\end{eqnarray}
+
+Both Jacobians above are $6 \times 6$.
+
+
+\subsection{Jacobian of the SE(3) pseudo-logarithm}
+\label{sect:eq:jacob_dLnSE3_dSE3}
+
+This sections defines the Jacobian of what we can call the ``pseudo-logarithm'' of a SE(3) pose, 
+which is obtained by taking the regular matrix logarithm to the rotational part ($3 \times 3$), 
+and leaving the translation vector intact. It is simpler and easier to evaluate than 
+the Jacobian of the matrix logarithm of the entire transformation matrix ($4 \times 4$). 
+Note that this defines a valid retraction on SE(3), as long as the corresponding ``pseudo-exponential'' 
+is also used when mapping 6-vectors to SE(3) poses, i.e. the translation part is copied as is.
+
+This Jacobian can then be defined as simply:
+
+\begin{equation}
+\label{eq:dLnSE3_wrt_SE3}
+\left.
+ \frac{\partial \text{pseudo-log}(\mathbf{T})^\vee }{\partial \mathbf{T}}
+\right|_{6 \times 12}
+=
+\left(
+\begin{array}{c|c}
+ \dfrac{\partial \log(\mathbf{R})^\vee }{\partial \mathbf{R}} & \mathbf{0}_{9 \times 3} \\
+\hline
+ \mathbf{0}_{3 \times 9} & \mathbf{I}_3
+\end{array}
+\right)
+\end{equation}
+
+\noindent where the Jacobian in Eq.~\ref{eq:dLnRot_wrt_R} has been used.
 
 
 \appendix
