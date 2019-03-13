@@ -4177,9 +4177,35 @@ Both Jacobians above are $6 \times 6$.
 \subsection{Jacobian of the SE(3) pseudo-logarithm}
 \label{sect:eq:jacob_dLnSE3_dSE3}
 
-This sections defines the Jacobian of what we can call the ``pseudo-logarithm'' of a SE(3) pose, 
-which is obtained by taking the regular matrix logarithm to the rotational part ($3 \times 3$), 
-and leaving the translation vector intact. It is simpler and easier to evaluate than 
+This sections defines the Jacobian of what we can call the ``pseudo-logarithm'' of a SE(3) pose $\mathbf{T}$:
+
+\begin{equation}
+\mathbf{T} =
+\left(
+\begin{array}{c|c}
+ \mathbf{R}_{3 \times 3}  & \mathbf{d_{t}}_{3 \times 1}  \\
+\hline
+  0 ~ 0 ~ 0 & 1
+\end{array}
+\right)
+\end{equation}
+ 
+\noindent which is obtained by taking the regular matrix logarithm to the rotational part ($3 \times 3$), 
+and leaving the translation vector intact, that is: 
+
+\begin{equation}
+\label{eq:pseudo-log-se3}
+\left. \text{pseudo-log}(\mathbf{T})^\vee \right|_{6 \times 1} = 
+\left(
+\begin{array}{c}
+\mathbf{d_{t}}_{3 \times 1} \\
+\log(\mathbf{R})^\vee
+\end{array}
+\right)
+\end{equation}
+
+
+It is simpler and easier to evaluate than 
 the Jacobian of the matrix logarithm of the entire transformation matrix ($4 \times 4$). 
 Note that this defines a valid retraction on SE(3), as long as the corresponding ``pseudo-exponential'' 
 is also used when mapping 6-vectors to SE(3) poses, i.e. the translation part is copied as is.
@@ -4193,10 +4219,9 @@ This Jacobian can then be defined as simply:
 \right|_{6 \times 12}
 =
 \left(
-\begin{array}{c|c}
- \dfrac{\partial \log(\mathbf{R})^\vee }{\partial \mathbf{R}} & \mathbf{0}_{9 \times 3} \\
-\hline
- \mathbf{0}_{3 \times 9} & \mathbf{I}_3
+\begin{array}{cc}
+ \mathbf{0}_{3 \times 9} & \mathbf{I}_3 \\
+ \dfrac{\partial \log(\mathbf{R})^\vee }{\partial \mathbf{R}} & \mathbf{0}_{3 \times 3}
 \end{array}
 \right)
 \end{equation}
