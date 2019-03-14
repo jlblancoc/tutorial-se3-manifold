@@ -19,11 +19,9 @@ function [] = jacob_DinvP1invP2()
   %syms e1x e1y e1z real
   %eps1=[e1x e1y e1z]'
   
-  J5 = jacob_Dexpe_de(TA)
-  J4 = jacob_invA_dA(TA)
+  J3 = jacob_Dexpe_de(TA)
     
-  [~, J3] = jacob_AB_dA_dB(TDinv,inv(TA))
-  [J2, ~] = jacob_AB_dA_dB(TDinv*inv(TA),TB)
+  [J2, Jx] = jacob_AB_dA_dB(TA,TB)
 
   %J1 = jacob_pseudoLnSE3()
 end

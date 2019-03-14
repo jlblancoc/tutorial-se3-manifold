@@ -4123,6 +4123,9 @@ Using the chain rule of Jacobians, we have:
 \begin{eqnarray}
 \left. \frac{\partial \log( \D^{-1} (\Pone e^{\E_1} )^{-1} \Ptwo )^\vee}{\partial \E_1} \right|_{\E_1 = 0}
 &=&
+\nonumber \\
+\left. \frac{\partial \log( \D^{-1} e^{-\E_1} \Pone^{-1} \Ptwo )^\vee}{\partial \E_1} \right|_{\E_1 = 0}
+&=&
 \underbrace{
 \left.
  \frac{\partial \log(\mathbf{T})^\vee }{\partial \mathbf{T}}
@@ -4130,20 +4133,14 @@ Using the chain rule of Jacobians, we have:
 }_{\text{See Eq.~\ref{eq:dLnSE3_wrt_SE3}}}
 %
 \underbrace{
-\left. \frac{\partial f_\oplus(A,B) }{\partial A } \right|_{\begin{subarray}{l} A=\D^{-1} \Pone^{-1} \\ B=\Ptwo \end{subarray}}
+\left. \frac{\partial f_\oplus(A,B) }{\partial A } \right|_{\begin{subarray}{l} A=\D^{-1} \\ B=\Pone^{-1}\Ptwo \end{subarray}}
 }_{\text{See Eq.~\ref{eq:oplus.ab.wrt.a}}}
- %
-\underbrace{
-\left. \frac{\partial f_\oplus(A,B) }{\partial B } \right|_{\begin{subarray}{l} A=\D^{-1} \\ B=\Pone^{-1} \end{subarray}}
-}_{\text{See Eq.~\ref{eq:oplus.ab.wrt.b}}}
-%
-\cdot  \nonumber \\ && \cdot
-\underbrace{
-\left. \frac{\partial A^{-1}}{\partial A} \right|_{A=\Pone}
-}_{\text{See Eq.~\ref{eq:jac_dInv_A}}}
+%\cdot  \nonumber \\ && \cdot
 %
 \underbrace{
-\left. \frac{\partial \Pone e^{\E_1} }{\partial \E_1} \right|_{\E_1 = 0}
+\left(
+\left. - \frac{\partial \D^{-1} e^{\E_1} }{\partial \E_1} \right|_{\E_1 = 0}
+\right)
 }_{\text{See Eq.~\ref{eq:jacob.d_eps_wrt_eps}}}
 %
 \nonumber
