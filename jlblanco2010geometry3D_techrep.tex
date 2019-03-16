@@ -141,7 +141,7 @@ Feedback and contributions are welcome in: \\
 
 \textbf{History of document versions:}
 \begin{itemize}
- \item Mar/2019: Added new sections: \S\ref{sect:jacob.DinvP2invP2}, \S\ref{sect:eq:jacob_dLnSE3_dSE3}.
+ \item Mar/2019: Added new sections: \S\ref{sect:jacob.DinvP2invP2}, \S\ref{sect:eq:jacob_dLnSE3_dSE3}. Removed incorrect transpose in Eq.~\ref{eq:oplus.ab.wrt.a}.
 
  \item Oct/2018: Yaw-Pitch-Roll to Quaternion Jacobian gets its own equation number for easier reference: Eq.~\ref{eq:jac_quat_ypr}. Better references for boxplus and boxminus operators in \S\ref{ch:se3_optim}. Added \S\ref{sect:jacob.p6_p12}. Added exponential and logarithms for SO(3) in quaternion form to \S\ref{eq:exp.log.so3}.
 	
@@ -2562,7 +2562,7 @@ expanded element by element and, rearranging terms, it can be easily shown that:
 \begin{eqnarray}
 \label{eq:oplus.ab.wrt.a}
 \frac{\partial f_\oplus(A,B) }{\partial A } &=&
-\frac{\partial \mathbf{T_A}\mathbf{T_B} }{\partial \mathbf{T_A} } = \mathbf{T_B}^\top \otimes \mathbf{I_3}
+\frac{\partial \mathbf{T_A}\mathbf{T_B} }{\partial \mathbf{T_A} } = \mathbf{T_B} \otimes \mathbf{I_3}
 \quad \quad \quad
 \text{(a $12 \times 12$ Jacobian)}
 \\

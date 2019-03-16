@@ -74,7 +74,7 @@ end
 
 % Section 7.3.1 of tech. report
 function [J_wrt_A, J_wrt_B] = jacob_AB_dA_dB(A,B)
-    J_wrt_A = kron(B',eye(3));
+    J_wrt_A = kron(B,eye(3));
     J_wrt_B = kron(eye(4),A(1:3,1:3));
 end
 
