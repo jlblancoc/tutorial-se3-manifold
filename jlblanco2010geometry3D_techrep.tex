@@ -141,7 +141,7 @@ Feedback and contributions are welcome in: \\
 
 \textbf{History of document versions:}
 \begin{itemize}
- \item Mar/2019: Added new sections: \S\ref{sect:jacob.DinvP2invP2}, \S\ref{sect:eq:jacob_dLnSE3_dSE3}. Removed incorrect transpose in Eq.~\ref{eq:oplus.ab.wrt.a}. Add appendix~\ref{ch:apx:se2} for SE(2) GraphSLAM.
+ \item Mar/2019: Added new sections: \S\ref{sect:jacob.DinvP2invP2}, \S\ref{sect:eq:jacob_dLnSE3_dSE3}. Removed incorrect transpose in Eq.~\ref{eq:oplus.ab.wrt.a}. Add appendix~\ref{ch:apx:se2} for SE(2) GraphSLAM. Formally define pseudo exponential and logarithm maps in \S\ref{eq:exp.log.se3}.
 
  \item Oct/2018: Yaw-Pitch-Roll to Quaternion Jacobian gets its own equation number for easier reference: Eq.~\ref{eq:jac_quat_ypr}. Better references for boxplus and boxminus operators in \S\ref{ch:se3_optim}. Added \S\ref{sect:jacob.p6_p12}. Added exponential and logarithms for SO(3) in quaternion form to \S\ref{eq:exp.log.so3}.
 	
@@ -3209,6 +3209,7 @@ Then, the map:
 \noindent is well-defined, surjective, and has the closed form:
 
 \begin{eqnarray}
+\label{eq:se3.exp.map}
   e^ { \mathbf{v} } \equiv  e^ { \mathbf{A}(\mathbf{v}) } =
 \left(
 \begin{array}{cc}
@@ -3274,43 +3275,91 @@ Note that $\mathbf{V}^{-1}$ has a closed-form expression \cite{gallier2003comput
 \end{equation}
 
 
+\subsubsection{Pseudo-exponential map}
+\label{sect:se3_pseudo-exp}
+
+Let $\mathbf{v}$ be a 6-vector of coordinates in
+the Lie algebra $\mathfrak{se}(3)$, per Eq.~\ref{eq:vector_in_se3}, 
+comprising a vector that determines the rotation ($\W$)
+and another one for the translation ($\mathbf{t}$).
+
+We can define the ``pseudo-exponential'' of $\mathbf{v}$
+by leaving the translation part intact, and evaluating the 
+matrix exponential for the SO(3) part only, that is:
+
+\begin{equation}
+\label{eq:pseudo-exp-se3}
+\text{pseudo-exp}(\mathbf{v}) = 
+\left(
+\begin{array}{cc}
+  e^{\hatop{\W}} & \mathbf{t} \\
+   0_{1 \times 3} & 1
+\end{array}
+\right)
+\end{equation}
+
+The interest in this modified version of the exponential map 
+is that it leads to Jacobians that are more efficient to evaluate
+than those of the real matrix exponential.
+Note that this defines a valid retraction on SE(3), as long as the corresponding ``pseudo-logarithm'' 
+is also used to map SE(3) poses to local tangent space coordinates.
+
+Compare Eq.~\ref{eq:pseudo-exp-se3} to Eq.~\ref{eq:se3.exp.map} to see why this leads to simpler Jacobians.
+
+
+
+\subsubsection{Pseudo-logarithm map}
+\label{sect:se3_pseudo-log}
+
+Given a SE(3) pose $\mathbf{T}$: 
+
+\begin{equation}
+\mathbf{T} =
+\left(
+\begin{array}{c|c}
+ \mathbf{R}_{3 \times 3}  & \mathbf{d_{t}}_{3 \times 1}  \\
+\hline
+  0 ~ 0 ~ 0 & 1
+\end{array}
+\right)
+\end{equation}
+
+\noindent we can compute the ``pseudo-logarithm'' of $\mathbf{T}$
+by taking the regular matrix logarithm to the rotational part ($3 \times 3$), and leaving the translation vector intact, that is: 
+
+\begin{equation}
+\label{eq:pseudo-log-se3}
+\left. \text{pseudo-log}(\mathbf{T})^\vee \right|_{6 \times 1} = 
+\left(
+\begin{array}{c}
+\mathbf{d_{t}}_{3 \times 1} \\
+\log(\mathbf{R})^\vee
+\end{array}
+\right)
+\end{equation}
+
+
 \subsection{Implementation in MRPT}
 
 The class \texttt{mrpt::poses::CPose3D} implements both the exponential and logarithm
-maps for both $\mathbf{SO}(3)$ and $\mathbf{SE}(3)$.
-The exponential maps can be accessed through static methods, which return objects
-with the corresponding $\mathbf{SO}(3)$ or $\mathbf{SE}(3)$ transformation matrix:
+maps for both $\mathbf{SO}(3)$ and $\mathbf{SE}(3)$
+up to MRPT version 1.5.x. Since MRPT 2.0, the pseudo-exponential and pseudo-logarithm 
+maps are available in the namespace 
+\texttt{mrpt::poses::Lie::SE<n>}, with n=2 or 3:
 
 \begin{lstlisting}
 #include <mrpt/poses/CPose3D.h>
-#include <mrpt/math/CArrayNumeric.h>
-using namespace mrpt::poses;
-using namespace mrpt::math;
+#include <mrpt/poses/CPose2D.h>
+#include <mrpt/poses/Lie/SE.h>
 
-CArrayDouble<3>  so3_vec;
-CArrayDouble<6>  se3_vec;
+mrpt::poses::Lie::SE<3>::tangent_vector v;
+//...
+mrpt::poses::CPose3D p = mrpt::poses::Lie::SE<3>::exp(v);
 
-CPose3D rot  = CPose3D::exp(so3_vec);  // Generates a pure rotation
-CPose3D pose = CPose3D::exp(se3_vec);  // Generates a translation & rotation
+mrpt::poses::CPose3D p;
+//...
+mrpt::poses::Lie::SE<3>::tangent_vector v = mrpt::poses::Lie::SE<3>::log(p);
 \end{lstlisting}
-
-
-The logarithms can be accessed through normal methods of an object which
-holds the transformation of interest, and return vectors or lengths 3 or 6:
-
-\begin{lstlisting}
-#include <mrpt/poses/CPose3D.h>
-#include <mrpt/math/CArrayNumeric.h>
-using namespace mrpt::poses;
-using namespace mrpt::math;
-
-CPose3D    p = ...
-
-CArrayDouble<3>  p_in_so3 = p.ln_rotation();
-CArrayDouble<6>  p_in_se3 = p.ln();
-\end{lstlisting}
-
-
 
 
 \chapter{Optimization problems on $\mathbf{SE}(3)$}
@@ -4175,40 +4224,9 @@ Both Jacobians above are $6 \times 6$.
 \subsection{Jacobian of the SE(3) pseudo-logarithm}
 \label{sect:eq:jacob_dLnSE3_dSE3}
 
-This sections defines the Jacobian of what we can call the ``pseudo-logarithm'' of a SE(3) pose $\mathbf{T}$:
-
-\begin{equation}
-\mathbf{T} =
-\left(
-\begin{array}{c|c}
- \mathbf{R}_{3 \times 3}  & \mathbf{d_{t}}_{3 \times 1}  \\
-\hline
-  0 ~ 0 ~ 0 & 1
-\end{array}
-\right)
-\end{equation}
- 
-\noindent which is obtained by taking the regular matrix logarithm to the rotational part ($3 \times 3$), 
-and leaving the translation vector intact, that is: 
-
-\begin{equation}
-\label{eq:pseudo-log-se3}
-\left. \text{pseudo-log}(\mathbf{T})^\vee \right|_{6 \times 1} = 
-\left(
-\begin{array}{c}
-\mathbf{d_{t}}_{3 \times 1} \\
-\log(\mathbf{R})^\vee
-\end{array}
-\right)
-\end{equation}
-
-
-It is simpler and easier to evaluate than 
-the Jacobian of the matrix logarithm of the entire transformation matrix ($4 \times 4$). 
-Note that this defines a valid retraction on SE(3), as long as the corresponding ``pseudo-exponential'' 
-is also used when mapping 6-vectors to SE(3) poses, i.e. the translation part is copied as is.
-
-This Jacobian can then be defined as simply:
+Given the definition of SE(3) pseudo-logarithm
+in \S\ref{sect:se3_pseudo-log}, 
+this Jacobian can then be defined as simply:
 
 \begin{equation}
 \label{eq:dLnSE3_wrt_SE3}
