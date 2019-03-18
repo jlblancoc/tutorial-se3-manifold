@@ -4505,7 +4505,7 @@ of a $3 \times 3$ homogeneous matrix with this structure:
 \noindent where the three degrees of freedom of the 2D transformation are the $(x,y)$ translation
 and the rotation of $\phi$ radians.
 
-The $\mathbf{R}_2$ belong to the group $SO(2)$, and $\mathbf{T}_2$ to $SE(2)$.
+The $\mathbf{R}_2$ belongs to the group $SO(2)$, and $\mathbf{T}_2$ to $SE(2)$.
 
 \section{Manifold local coordinates and retraction}
 
@@ -4526,7 +4526,7 @@ Let
 \begin{equation}
 \label{eq:vector_in_se2}
 \mathbf{v}= \left( \begin{array}{c} \mathbf{t}' \\ \phi \end{array} \right)
-= \left( \begin{array}{c} x' \\ y' \\ \phi \end{array} \right)
+= \left( \begin{array}{c} x' \\ y' \\ \phi \end{array} \right) \in \mathfrak{se}(2)
 \end{equation}
 
 \noindent denote the 3-vector of local coordinates in the Lie algebra $\mathfrak{se}(2)$,
@@ -4539,7 +4539,7 @@ Next we define the $3 \times 3$ matrix:
  \mathbf{A}(\mathbf{v})=
 \left(
 \begin{array}{c|c}
- \hatop{[\phi]}  & \mathbf{t} \\
+ \hatop{[\phi]}  & \mathbf{t}' \\
  \hline
   0 & 0
 \end{array}
@@ -4567,7 +4567,7 @@ Then, the map:
   e^ { \mathbf{v} } \equiv  e^ { \mathbf{A}(\mathbf{v}) } =
 \left(
 \begin{array}{cc}
-  e^{\hatop{[\phi]}} & \mathbf{V}_2 \mathbf{t} \\
+  e^{\hatop{[\phi]}} & \mathbf{V}_2 \mathbf{t}' \\
    0 & 1
 \end{array}
 \right)
@@ -4578,7 +4578,7 @@ Then, the map:
 + \frac{\phi- \sin \phi}{\phi^3} (\hatop{[\phi]})^2 
 \end{eqnarray}
 
-\noindent with $e^{\hatop{\W}}$ the matrix exponential 
+\noindent with $e^{\hatop{[\phi]}}$ the matrix exponential 
 and $\hatop{[\phi]}=\left( \begin{array}{cc} 0 & -\phi \\ \phi & 0\end{array}\right)$.
 
 \subsection{SE(2) logarithm map}
@@ -4608,7 +4608,7 @@ The map:
 \end{array}
 \right)
 \nonumber \\
-\mathbf{t}' &=& \mathbf{V}_2^{-1} \mathbf{t} \quad \quad \text{(with $\mathbf{V}_2$ in Eq.~\ref{eq:se2:V})}
+\mathbf{t} &=& \mathbf{V}_2^{-1} \mathbf{t}' \quad \quad \text{(with $\mathbf{V}_2$ in Eq.~\ref{eq:se2:V})}
 \end{eqnarray}
 
 Note that $\mathbf{V}_2^{-1}$ has a closed-form expression:
@@ -4644,7 +4644,7 @@ Therefore:
 becomes the identity:
 
 \begin{equation}
-\frac{\partial e^\mathbf{v}}{\partial \mathbf{v}}
+	\frac{\partial \text{pseudo-exp}(\mathbf{v})}{\partial \mathbf{v}}
 \equiv 
 \mathbf{I}_3
 \end{equation}
@@ -4666,7 +4666,7 @@ As a consequence of the equations above, we define:
 \noindent whose Jacobian is also the identity:
 
 \begin{equation}
-\frac{\partial \text{pseudo-log}(\mathbf{T}_2)^\vee}{\partial \{x',y', \phi\}} = 
+\frac{\partial \text{pseudo-log}(\mathbf{T}_2)}{\partial \{x,y, \phi\}} = 
 \mathbf{I}_3
 \end{equation}
 
@@ -4674,7 +4674,7 @@ As a consequence of the equations above, we define:
 \subsection{SE(2) Jacobian of $D\boxplus \varepsilon = D \oplus e^\varepsilon$  (right-multiply option)}
 \label{sect:se2.jacob_De}
 
-Let $\mathbf{D} \in \mathbf{SE}(2)$ be the 2D pose $(x_D,y_D,\theta_D)$, 
+Let $\mathbf{D} \in \mathbf{SE}(2)$ be the 2D pose $(x_D,y_D,\phi_D)$, 
 and $\E=(\E_x ~ \E_y ~ \E_{\phi})^\top$ an increment on $\mathfrak{se}(2)$. 
 We are interested in the derivative of $\mathbf{D} \oplus e^\E$ w.r.t $\E$, 
 which can be shown to be (expanding the multiplication of the corresponding matrices):
@@ -4696,9 +4696,9 @@ which can be shown to be (expanding the multiplication of the corresponding matr
 \label{sect:se2.jacob_AB}
 
 Let $\mathbf{A}, \mathbf{B} \in \mathbf{SE}(2)$ be the 2D poses 
-$(x_A,y_A,\theta_A)$, 
+$(x_A,y_A,\phi_A)$, 
 and
-$(x_B,y_B,\theta_B)$, respectively. 
+$(x_B,y_B,\phi_B)$, respectively. 
 We are interested in the derivatives of the composed pose $A \oplus B$ w.r.t both poses. 
 By expanding the matrix products it is easy to show that: 
 
