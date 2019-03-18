@@ -121,10 +121,10 @@ It will be described:
 is affected by these transformations and compositions.
 Some brief notes are also given about the Jacobians required to implement least-squares optimization
 on manifolds, an very promising approach in recent engineering literature.
-The text reflects which MRPT C++ library\footnote{\texttt{http://www.mrpt.org/}} functions implement
+The text reflects which MRPT C++ library\footnote{\texttt{https://www.mrpt.org/}} functions implement
 each of the described algorithms.
-All the implementations have been thoroughly validated by means of unit testing and
-numerical estimation of the Jacobians.
+All formulas and their implementation have been thoroughly validated 
+by means of unit testing and numerical estimation of the Jacobians.
 \end{abstract}
 
 
@@ -141,7 +141,7 @@ Feedback and contributions are welcome in: \\
 
 \textbf{History of document versions:}
 \begin{itemize}
- \item Mar/2019: Added new sections: \S\ref{sect:jacob.DinvP2invP2}, \S\ref{sect:eq:jacob_dLnSE3_dSE3}. Removed incorrect transpose in Eq.~\ref{eq:oplus.ab.wrt.a}.
+ \item Mar/2019: Added new sections: \S\ref{sect:jacob.DinvP2invP2}, \S\ref{sect:eq:jacob_dLnSE3_dSE3}. Removed incorrect transpose in Eq.~\ref{eq:oplus.ab.wrt.a}. Add appendix~\ref{ch:apx:se2} for SE(2) GraphSLAM.
 
  \item Oct/2018: Yaw-Pitch-Roll to Quaternion Jacobian gets its own equation number for easier reference: Eq.~\ref{eq:jac_quat_ypr}. Better references for boxplus and boxminus operators in \S\ref{ch:se3_optim}. Added \S\ref{sect:jacob.p6_p12}. Added exponential and logarithms for SO(3) in quaternion form to \S\ref{eq:exp.log.so3}.
 	
@@ -3075,6 +3075,7 @@ $\mathbf{SE}(3)$.
 
 
 \section{Exponential and logarithm maps}
+\label{sect:se3.exp.log}
 
 As defined in \S\ref{sect:exp_ln}, the exponential and logarithm maps
 transform elements between Lie groups and their corresponding
@@ -4448,10 +4449,330 @@ we arrive at:
 
 % --------------------
 
-\chapter{Simpler SE(2) expressions}
+\chapter{Expressions for SE(2) GraphSLAM}
 \label{ch:apx:se2}
 
-Write me!
+Poses in 2D, $SE(2)=\mathbb{R}^2 \times SO(2)$, have a much simpler structure than 
+their three-dimensional counterparts, $SE(3)=\mathbb{R}^3 \times SO(3)$, therefore 
+it is in order aiming at simpler, more efficient, expressions for solving SLAM problems in 2D.
+This section explains the formulas used for SE(2) graph-SLAM within 
+the MRPT framework.
+
+\section{SE(2) definition}
+
+A pose (rigid transformation) in two-dimensional Euclidean space can be uniquely determined by means
+of a $3 \times 3$ homogeneous matrix with this structure:
+
+\begin{equation}
+\label{eq:se2:T_Rt}
+ \mathbf{T}_2 =
+\left(
+\begin{array}{c|c}
+  \mathbf{R}_2 & \mathbf{t} \\
+\hline
+  \mathbf{0}_{1\times 2} & 1
+\end{array}
+\right)
+=
+\left(
+\begin{array}{cc|c}
+\cos \phi & -\sin \phi & x \\
+\sin \phi & \cos \phi & y \\
+\hline
+0 & 0 & 1
+\end{array}
+\right)
+\end{equation}
+
+\noindent where the three degrees of freedom of the 2D transformation are the $(x,y)$ translation
+and the rotation of $\phi$ radians.
+
+The $\mathbf{R}_2$ belong to the group $SO(2)$, and $\mathbf{T}_2$ to $SE(2)$.
+
+\section{Manifold local coordinates and retraction}
+
+Just like we defined the exponential and logarithm map for SE(3) in \S\ref{sect:se3.exp.log},
+we can define similar operations for SE(2).
+
+Rigorously, the exponential and logarithm maps for SE(2) 
+are defined as shown in \S\ref{sect:se2.exp}--\ref{sect:se2.exp} below, 
+but in practice the simpler pseudo maps in \S\ref{sect:se2.ps-exp}--\ref{sect:se2.ps-log}
+are more efficient to evaluate and work as a valid retraction and local coordinate map, respectively.
+Therefore, the latter will be used in subsequent sections.
+
+\subsection{SE(2) exponential map}
+\label{sect:se2.exp}
+
+Let
+
+\begin{equation}
+\label{eq:vector_in_se2}
+\mathbf{v}= \left( \begin{array}{c} \mathbf{t}' \\ \phi \end{array} \right)
+= \left( \begin{array}{c} x' \\ y' \\ \phi \end{array} \right)
+\end{equation}
+
+\noindent denote the 3-vector of local coordinates in the Lie algebra $\mathfrak{se}(2)$,
+comprising a 2-vector $\mathbf{t}'$ for a translation, 
+which is different than the actual plain SE(2) translation $\mathbf{t}=(x,y)$,
+and a rotation $\phi$.
+Next we define the $3 \times 3$ matrix:
+
+\begin{equation}
+ \mathbf{A}(\mathbf{v})=
+\left(
+\begin{array}{c|c}
+ \hatop{[\phi]}  & \mathbf{t} \\
+ \hline
+  0 & 0
+\end{array}
+\right)
+=
+\left(
+\begin{array}{cc|c}
+ 0 & -\phi & x' \\
+ \phi & 0 & y' \\
+ \hline
+ 0 & 0 & 0
+\end{array}
+\right)
+\end{equation}
+
+Then, the map:
+
+\begin{equation}
+  \exp: \mathfrak{se}(2) \mapsto \mathbf{SE}(2)
+\end{equation}
+
+\noindent is well-defined, surjective, and has the closed form:
+
+\begin{eqnarray}
+  e^ { \mathbf{v} } \equiv  e^ { \mathbf{A}(\mathbf{v}) } =
+\left(
+\begin{array}{cc}
+  e^{\hatop{[\phi]}} & \mathbf{V}_2 \mathbf{t} \\
+   0 & 1
+\end{array}
+\right)
+\\
+\label{eq:se2:V}
+\mathbf{V}_2 = \mathbf{I_2}
++ \frac{1-\cos \phi}{\phi^2} \hatop{[\phi]}
++ \frac{\phi- \sin \phi}{\phi^3} (\hatop{[\phi]})^2 
+\end{eqnarray}
+
+\noindent with $e^{\hatop{\W}}$ the matrix exponential 
+and $\hatop{[\phi]}=\left( \begin{array}{cc} 0 & -\phi \\ \phi & 0\end{array}\right)$.
+
+\subsection{SE(2) logarithm map}
+\label{sect:se2.log}
+
+The map:
+
+\begin{eqnarray}
+  \log: \mathbf{SE}(2) &\mapsto& \mathfrak{se}(2) \\
+  \mathbf{A}(\mathbf{v})  & \mapsto & \mathbf{v}
+\nonumber
+\end{eqnarray}
+
+\noindent is well-defined and can be computed as:
+
+\begin{eqnarray}
+\mathbf{v} &=&
+\left(
+\begin{array}{c}
+ \mathbf{t}' \\ \phi
+\end{array}
+\right)
+=
+\left(
+\begin{array}{c}
+ x'\\y' \\ \phi
+\end{array}
+\right)
+\nonumber \\
+\mathbf{t}' &=& \mathbf{V}_2^{-1} \mathbf{t} \quad \quad \text{(with $\mathbf{V}_2$ in Eq.~\ref{eq:se2:V})}
+\end{eqnarray}
+
+Note that $\mathbf{V}_2^{-1}$ has a closed-form expression:
+
+\begin{equation}
+\mathbf{V}_2^{-1} = \mathbf{I}_2 
+- \dfrac{1}{2} \hatop{[\phi]} + 
+\dfrac{\left(
+ 1 - \dfrac{ \phi \cos(\phi/2)}{2 \sin(\phi / 2)}
+\right) 
+}{\phi^2}  (\hatop{[\phi]})^2
+\end{equation}
+
+
+\subsection{SE(2) pseudo-exponential map}
+\label{sect:se2.ps-exp}
+
+Since rotations in SE(2) are only parameterized by one scalar ($\phi$), 
+it becomes more convenient to use a 3-vector to model local coordinates 
+in the tangent space to the manifold, and to directly use $\mathbf{t}'=\mathbf{t}$
+(see sections above). 
+Therefore: 
+
+\begin{eqnarray}
+\label{eq:se2.pseudo-exp}
+  \text{pseudo-exp}: \mathfrak{se}(2) &\mapsto& \mathbf{SE}(2) \\ 
+  \left( \begin{array}{c} x' \\ y' \\ \phi \end{array} \right)
+  &=&
+  \left( \begin{array}{c} x \\ y \\ \phi \end{array} \right)
+\end{eqnarray}
+
+\noindent such that the Jacobian of the pseudo-exponential map 
+becomes the identity:
+
+\begin{equation}
+\frac{\partial e^\mathbf{v}}{\partial \mathbf{v}}
+\equiv 
+\mathbf{I}_3
+\end{equation}
+
+
+\subsection{SE(2) pseudo-logarithm map}
+\label{sect:se2.ps-log}
+
+As a consequence of the equations above, we define:
+
+\begin{eqnarray}
+\label{eq:se2.pseudo-log}
+  \text{pseudo-log}: \mathbf{SE}(2)&\mapsto& \mathfrak{se}(2) \\ 
+  \left( \begin{array}{c} x \\ y \\ \phi \end{array} \right)
+  &=&
+  \left( \begin{array}{c} x' \\ y' \\ \phi \end{array} \right)
+\end{eqnarray}
+
+\noindent whose Jacobian is also the identity:
+
+\begin{equation}
+\frac{\partial \text{pseudo-log}(\mathbf{T}_2)^\vee}{\partial \{x',y', \phi\}} = 
+\mathbf{I}_3
+\end{equation}
+
+
+\subsection{SE(2) Jacobian of $D\boxplus \varepsilon = D \oplus e^\varepsilon$  (right-multiply option)}
+\label{sect:se2.jacob_De}
+
+Let $\mathbf{D} \in \mathbf{SE}(2)$ be the 2D pose $(x_D,y_D,\theta_D)$, 
+and $\E=(\E_x ~ \E_y ~ \E_{\phi})^\top$ an increment on $\mathfrak{se}(2)$. 
+We are interested in the derivative of $\mathbf{D} \oplus e^\E$ w.r.t $\E$, 
+which can be shown to be (expanding the multiplication of the corresponding matrices):
+
+\begin{eqnarray}
+\label{eq:se2.dDexpe_de}
+\left. \frac{\partial \mathbf{D e^\E}}{\partial \E} \right|_{\E = 0}
+=
+\left(
+\begin{array}{ccc}
+\cos \phi_D & -\sin \phi_D & 0 \\
+\sin \phi_D & \cos \phi_D & 0 \\
+0 & 0 & 1
+\end{array}
+\right)_{3 \times 3}
+\end{eqnarray}
+
+\subsection{Jacobians for SE(2) pose composition $A \oplus B$}
+\label{sect:se2.jacob_AB}
+
+Let $\mathbf{A}, \mathbf{B} \in \mathbf{SE}(2)$ be the 2D poses 
+$(x_A,y_A,\theta_A)$, 
+and
+$(x_B,y_B,\theta_B)$, respectively. 
+We are interested in the derivatives of the composed pose $A \oplus B$ w.r.t both poses. 
+By expanding the matrix products it is easy to show that: 
+
+\begin{eqnarray}
+\label{eq:se2.dAB_dA}
+\frac{\partial f_\oplus(A,B)}{\partial \A}
+=
+\left(
+\begin{array}{ccc}
+1 & 0 & -x_B \sin \phi_A - y_B \cos \phi_A \\
+0 & 1 &  x_B \cos \phi_A - y_B \sin \phi_A \\
+0 & 0 & 1
+\end{array}
+\right)_{3 \times 3}
+\end{eqnarray}
+
+\noindent and:
+
+\begin{eqnarray}
+\label{eq:se2.dAB_dB}
+\frac{\partial f_\oplus(A,B)}{\partial \B}
+=
+\left(
+\begin{array}{ccc}
+\cos \phi_A & -\sin \phi_A & 0  \\
+\sin \phi_A & \cos \phi_A & 0 \\
+0 & 0 & 1
+\end{array}
+\right)_{3 \times 3}
+\end{eqnarray}
+
+\subsection{SE(2) Jacobian of $((P_2 \oplus e^{\varepsilon 2}) \ominus (P_1 \oplus e^{\varepsilon 1})) \ominus D$}
+\label{sect:se2:jacob.DinvP2invP2}
+
+While solving Graph-SLAM in SE(2), we need to optimize the global poses $P_1$ and $P_2$ given a measurement $D$ of the relative pose or $P_2$ with respect to $P_1$, i.e.  $D=P_2 \ominus P_1$ or $\D = \Pone^{-1} \Ptwo$.
+The corresponding error function to be minimized can be written as $(P_2 \ominus P_1) \ominus D$ or $\D^{-1} \Pone^{-1} \Ptwo$.
+Therefore, we need the Jacobians of the latter expression with respect to 
+manifold increments of $P_1$ and $P_2$. 
+For SE(2), we will assume that the error vector is the pseudo-logarithm of the pose mismatch above.
+
+Using the chain rule of Jacobians, we have:
+
+\begin{eqnarray}
+\left. \frac{\partial \log( \D^{-1} (\Pone e^{\E_1} )^{-1} \Ptwo )^\vee}{\partial \E_1} \right|_{\E_1 = 0}
+&=&
+\nonumber \\
+\left. \frac{\partial \log( \D^{-1} e^{-\E_1} \Pone^{-1} \Ptwo )^\vee}{\partial \E_1} \right|_{\E_1 = 0}
+&=&
+\cancelto{\mathbf{I}_3}{
+\left.
+ \frac{\partial \log(\mathbf{T_2})^\vee }{\partial \mathbf{T}}
+\right|_{T=\D^{-1} \Pone^{-1} \Ptwo}
+}
+\quad
+%
+\underbrace{
+\left. \frac{\partial f_\oplus(A,B) }{\partial A } \right|_{\begin{subarray}{l} A=\D^{-1} \\ B=\Pone^{-1}\Ptwo \end{subarray}}
+}_{\text{See Eq.~\ref{eq:se2.dAB_dA}}}
+\quad
+%
+\underbrace{
+\left(
+\left. - \frac{\partial \D^{-1} e^{\E_1} }{\partial \E_1} \right|_{\E_1 = 0}
+\right)
+}_{\text{See Eq.~\ref{eq:se2.dDexpe_de}}}
+%
+\nonumber
+\\
+%
+\end{eqnarray}
+
+\noindent and:
+
+\begin{eqnarray}
+\left. \frac{\partial \log( \D^{-1} \Pone ^{-1} \Ptwo e^{\E_2} )^\vee}{\partial \E_2} \right|_{\E_2 = 0}
+&=&
+\cancelto{\mathbf{I}_3}{
+\left.
+ \frac{\partial \log(\mathbf{T_2})^\vee }{\partial \mathbf{T}}
+\right|_{T=\D^{-1} \Pone^{-1} \Ptwo}
+}
+\quad
+%
+\underbrace{
+\left. \frac{\partial A e^{\E_2} }{\partial \E_2} \right|_{\begin{subarray}{l} \E_2=0\\ A= \D^{-1} \Pone ^{-1} \Ptwo\end{subarray}}
+}_{\text{See Eq.~\ref{eq:se2.dDexpe_de}}}
+%
+\nonumber
+\\
+%
+\end{eqnarray}
+
 
 
 %% ---------------------------------------------------------------
