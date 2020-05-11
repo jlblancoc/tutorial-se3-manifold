@@ -141,6 +141,8 @@ Feedback and contributions are welcome in: \\
 
 \textbf{History of document versions:}
 \begin{itemize}
+ \item May/2020: Fix wrong terms in Eq.~\ref{eq:jacob.f_qrir_p} (Thanks to \href{https://github.com/YB27}{@YB27}).
+
  \item Mar/2019: Added new sections: \S\ref{sect:jacob.DinvP2invP2}, \S\ref{sect:eq:jacob_dLnSE3_dSE3}. Removed incorrect transpose in Eq.~\ref{eq:oplus.ab.wrt.a}. Add appendix~\ref{ch:apx:se2} for SE(2) GraphSLAM. Formally define pseudo exponential and logarithm maps in \S\ref{eq:exp.log.se3}.
 
  \item Oct/2018: Yaw-Pitch-Roll to Quaternion Jacobian gets its own equation number for easier reference: Eq.~\ref{eq:jac_quat_ypr}. Better references for boxplus and boxminus operators in \S\ref{ch:se3_optim}. Added \S\ref{sect:jacob.p6_p12}. Added exponential and logarithms for SO(3) in quaternion form to \S\ref{eq:exp.log.so3}.
@@ -1688,17 +1690,19 @@ write the Jacobian with respect to the pose as:
 \noindent with:
 
 \begin{eqnarray}
+\label{eq:jacob.f_qrir_p}
 \frac{ \partial \mathbf{f_{qrir}}( \mathbf{a}, \mathbf{p} )}{\partial \mathbf{p}}
 &=&
+2
 \left(\begin{array}{cccc}
-2 q_y \Delta z - 2 q_z \Delta y &                  2 q_y \Delta y + 2 q_z \Delta z &
-2 q_x \Delta y - 4 q_y \Delta x + 2 qr \Delta z &  2 q_x \Delta z - 2 qr \Delta y - 4 q_z \Delta x
+-q_y \Delta z + q_z \Delta y &                  q_y \Delta y + q_z \Delta z &
+q_x \Delta y - 2 q_y \Delta x - q_r \Delta z &  q_x \Delta z + q_r \Delta y - 2q_z \Delta x
 \\
- 2 q_z \Delta x - 2 q_x \Delta z &  2 q_y \Delta x - 4 q_x \Delta y - 2 q_r \Delta z &
-2 q_x \Delta x + 2 q_z \Delta z &  2 q_r \Delta x - 4 q_z \Delta y + 2 q_y \Delta z
+q_x \Delta z - q_z \Delta x &  q_y \Delta x - 2 q_x \Delta y + q_r \Delta z &
+q_x \Delta x + q_z \Delta z &  -q_r \Delta x - 2 q_z \Delta y + q_y \Delta z
 \\
- 2 q_x \Delta y - 2 q_y \Delta x &  2 q_z \Delta x + 2 qr \Delta y - 4 q_x \Delta z &
-2 q_z \Delta y - 2 qr \Delta x - 4 q_y \Delta z &  2 q_x \Delta x + 2 q_y \Delta y
+q_y \Delta x - q_x \Delta y &  q_z \Delta x - q_r \Delta y - 2 q_x \Delta z &
+q_z \Delta y + q_r \Delta x - 2 q_y \Delta z &  q_x \Delta x + q_y \Delta y
 \\
 \end{array}\right) \nonumber \\
 & ~ & \cdot \frac{\partial (q_r',q_x',q_y',q_z')(q_r,q_x,q_y,q_z)}{\partial q_r,q_x,q_y,q_z}
