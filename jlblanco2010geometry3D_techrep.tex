@@ -141,7 +141,7 @@ Feedback and contributions are welcome in: \\
 
 \textbf{History of document versions:}
 \begin{itemize}
- \item May/2020: Fix wrong terms in Eq.~\ref{eq:jacob.f_qrir_p} (Thanks to \href{https://github.com/YB27}{@YB27}).
+ \item May/2020: Fix wrong terms in Eq.~\ref{eq:jacob.f_qrir_p} and a typo in Eq.~\ref{eq:jacob.inverse.quat} (Thanks to \href{https://github.com/YB27}{@YB27}).
 
  \item Mar/2019: Added new sections: \S\ref{sect:jacob.DinvP2invP2}, \S\ref{sect:eq:jacob_dLnSE3_dSE3}. Removed incorrect transpose in Eq.~\ref{eq:oplus.ab.wrt.a}. Add appendix~\ref{ch:apx:se2} for SE(2) GraphSLAM. Formally define pseudo exponential and logarithm maps in \S\ref{eq:exp.log.se3}.
 
@@ -1666,7 +1666,7 @@ cov(\mathbf{a})  ~
 1 - 2 (q_y^2 + q_z^2)   &    2 q_x q_y + 2 q_r q_z  &     - 2 q_r q_y + 2 q_x q_z \\
 -2 q_r q_z + 2 q_x q_y &   1 - 2 (q_x^2 + q_z^2) &   2 q_y q_z + 2 q_r q_x \\
 2 q_x q_z + 2 q_r q_y &   -2 q_r q_x + 2 q_y q_z & 1 - 2 (q_x^2 + q_y^2 ) \\
-\end{array}\right)
+\end{array}\right)_{3 \times 3}
 \end{eqnarray}
 
 \noindent and, if we define
@@ -1684,7 +1684,7 @@ write the Jacobian with respect to the pose as:
 \\
 -2 q_r q_y - 2 q_x q_z &  2 q_r q_x - 2 q_y q_z &  2 q_x^2 + 2 q_y^2 - 1 & ~
 \\
-\end{array}\right)
+\end{array}\right)_{3 \times 7}
 \end{eqnarray}
 
 \noindent with:
@@ -2233,6 +2233,7 @@ cov(\mathbf{q})
 \noindent with the Jacobian:
 
 \begin{eqnarray}
+\label{eq:jacob.inverse.quat}
 \frac{\partial \mathbf{f_{qi}} }{\partial \mathbf{q}}
 =
 \left(
@@ -2240,7 +2241,7 @@ cov(\mathbf{q})
 \frac{\partial \mathbf{f_{qri}}([0~0~0]^\top,\mathbf{q}) }{\partial \mathbf{q}} \\
 \hline
  \begin{array}{c|c}
-   \mathbf{0}_{4 \times 4} &
+   \mathbf{0}_{4 \times 3} &
    \begin{array}{rrrr}
     1 & 0 & 0 & 0 \\
     0 & -1 & 0 & 0 \\
