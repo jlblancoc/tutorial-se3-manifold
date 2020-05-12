@@ -2232,28 +2232,36 @@ cov(\mathbf{q})
 
 \noindent with the Jacobian:
 
-\begin{eqnarray}
+\begin{subeqnarray}
 \label{eq:jacob.inverse.quat}
 \frac{\partial \mathbf{f_{qi}} }{\partial \mathbf{q}}
-=
+&=&
 \left(
 \begin{array}{c}
 \frac{\partial \mathbf{f_{qri}}([0~0~0]^\top,\mathbf{q}) }{\partial \mathbf{q}} \\
 \hline
  \begin{array}{c|c}
-   \mathbf{0}_{4 \times 3} &
-   \begin{array}{rrrr}
-    1 & 0 & 0 & 0 \\
-    0 & -1 & 0 & 0 \\
-    0 & 0 & -1 & 0 \\
-    0 & 0 & 0 & -1
-   \end{array}
+   \mathbf{0}_{4 \times 3} & 
+   \mathbf{D}
  \end{array}
 \end{array}
 \right)
-\end{eqnarray}
+\\
+\mathbf{D}
+&=& 
+\left(
+\begin{array}{rrrr}
+	1 & 0 & 0 & 0 \\
+	0 & -1 & 0 & 0 \\
+	0 & 0 & -1 & 0 \\
+	0 & 0 & 0 & -1
+\end{array}
+\right)
+\frac{\partial (q_r',q_x',q_y',q_z')(q_r,q_x,q_y,q_z)}{\partial q_r,q_x,q_y,q_z}
+\end{subeqnarray}
 
-\noindent where the sub-Jacobian on the top has been already defined in Eq.(\ref{eq:df_qri_p}).
+\noindent where the sub-Jacobian on the top has been already defined in Eq.~(\ref{eq:df_qri_p}) and the normalization Jacobian 
+is defined \S \ref{sect:quat:norm}.
 
 
 
