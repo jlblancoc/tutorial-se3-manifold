@@ -143,6 +143,7 @@ Feedback and contributions are welcome in: \\
 
 \textbf{History of document versions:}
 \begin{itemize}
+ \item Apr/2022: Fixed missing transpose in Eq.~(\ref{eq:oplus.ab.wrt.a}), which was correctly set in Eq.~(\ref{eq:jacob_eD.2}) (Thanks to Frisch)
  \item Mar/2021: Added Eqs.~(\ref{eq:rodrigues_coordinate})--(\ref{eq:axis.angle.PR}) and 
  Eqs.~(\ref{eq:rotation_angle})--(\ref{eq:axis_around_pi}) (Thanks to \href{https://github.com/nurlanov-zh
  }{Nurlanov Zhakshylyk}).
@@ -2580,7 +2581,7 @@ expanded element by element and, rearranging terms, it can be easily shown that:
 \begin{eqnarray}
 \label{eq:oplus.ab.wrt.a}
 \frac{\partial f_\oplus(A,B) }{\partial A } &=&
-\frac{\partial \mathbf{T_A}\mathbf{T_B} }{\partial \mathbf{T_A} } = \mathbf{T_B} \otimes \mathbf{I_3}
+\frac{\partial \mathbf{T_A}\mathbf{T_B} }{\partial \mathbf{T_A} } = \mathbf{T_B}^\top \otimes \mathbf{I_3}
 \quad \quad \quad
 \text{(a $12 \times 12$ Jacobian)}
 \\
@@ -2619,6 +2620,8 @@ We obtain in this case:
 \quad \quad \quad
 \text{(a $3 \times 12$ Jacobian)}
 \end{eqnarray}
+
+These Jacobians are provided in MRPT via \texttt{mrpt::poses::Lie::SE<3>}, methods {jacob\_dAB\_dA()} and \texttt{jacob\_dAB\_dB()}, respectively.
 
 
 \subsection{Inverse of a pose}
@@ -3900,6 +3903,7 @@ we are interested in the derivative of $e^\E \oplus \mathbf{D}$ w.r.t $\E$:
 \left. \frac{\partial \mathbf{A} \mathbf{D}}{\partial \mathbf{A} } \right|_{\mathbf{A}=\mathbf{I_4} = e^\E}
 \left. \frac{\partial e^\E}{\partial \E} \right|_{\E=0}
 \\
+\label{eq:jacob_eD.2}
 &=&
 \left[ \mathbf{T}(\mathbf{D})^\top \otimes  \mathbf{I}_3 \right]
 \left. \frac{\partial e^\E}{\partial \E} \right|_{\E=0}
