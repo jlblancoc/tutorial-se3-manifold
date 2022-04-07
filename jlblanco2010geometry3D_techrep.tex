@@ -2593,6 +2593,7 @@ expanded element by element and, rearranging terms, it can be easily shown that:
 \text{(a $12 \times 12$ Jacobian)}
 \end{eqnarray}
 
+These Jacobians are provided in MRPT via \texttt{mrpt::poses::Lie::SE<3>}, methods \texttt{jacob\_dAB\_dA()} and \texttt{jacob\_dAB\_dB()}, respectively.
 
 \subsection{Pose-point composition}
 
@@ -2620,8 +2621,6 @@ We obtain in this case:
 \quad \quad \quad
 \text{(a $3 \times 12$ Jacobian)}
 \end{eqnarray}
-
-These Jacobians are provided in MRPT via \texttt{mrpt::poses::Lie::SE<3>}, methods {jacob\_dAB\_dA()} and \texttt{jacob\_dAB\_dB()}, respectively.
 
 
 \subsection{Inverse of a pose}
